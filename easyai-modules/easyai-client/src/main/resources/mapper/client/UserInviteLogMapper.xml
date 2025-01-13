@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.base.mapper.UserInviteLogMapper">
+
+    <resultMap type="UserInviteLog" id="UserInviteLogResult">
+        <result property="inviteId"    column="invite_id"    />
+        <result property="inviteEmail"    column="invite_email"    />
+        <result property="invitedEmail"    column="invited_email"    />
+        <result property="reward"    column="reward"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectUserInviteLogVo">
+        select invite_id, invite_email, invited_email, reward, create_time from easyai_user_invite_log
+    </sql>
+
+    <select id="selectUserInviteLogList" parameterType="UserInviteLog" resultMap="UserInviteLogResult">
+        <include refid="selectUserInviteLogVo"/>
+        <where>
+            <if test="inviteEmail != null  and inviteEmail != ''"> and invite_email = #{inviteEmail}</if>
+            <if test="invitedEmail != null  and invitedEmail != ''"> and invited_email = #{invitedEmail}</if>
+            <if test="reward != null "> and reward = #{reward}</if>
+        </where>
+    </select>
+
+    <select id="selectUserInviteLogByInviteId" parameterType="Long" resultMap="UserInviteLogResult">
+        <include refid="selectUserInviteLogVo"/>
+        where invite_id = #{inviteId}
+    </select>
+
+    <insert id="insertUserInviteLog" parameterType="UserInviteLog" useGeneratedKeys="true" keyProperty="inviteId">
+        insert into easyai_user_invite_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="inviteEmail != null">invite_email,</if>
+            <if test="invitedEmail != null">invited_email,</if>
+            <if test="reward != null">reward,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="inviteEmail != null">#{inviteEmail},</if>
+            <if test="invitedEmail != null">#{invitedEmail},</if>
+            <if test="reward != null">#{reward},</if>
+            <if test="createTime != null">#{createTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateUserInviteLog" parameterType="UserInviteLog">
+        update easyai_user_invite_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="inviteEmail != null">invite_email = #{inviteEmail},</if>
+            <if test="invitedEmail != null">invited_email = #{invitedEmail},</if>
+            <if test="reward != null">reward = #{reward},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where invite_id = #{inviteId}
+    </update>
+
+    <delete id="deleteUserInviteLogByInviteId" parameterType="Long">
+        delete from easyai_user_invite_log where invite_id = #{inviteId}
+    </delete>
+
+    <delete id="deleteUserInviteLogByInviteIds" parameterType="String">
+        delete from easyai_user_invite_log where invite_id in
+        <foreach item="inviteId" collection="array" open="(" separator="," close=")">
+            #{inviteId}
+        </foreach>
+    </delete>
+</mapper>

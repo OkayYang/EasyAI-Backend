@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.UserCustomMapper">
+
+    <resultMap type="User" id="UserResult">
+        <result property="id"    column="id"    />
+        <result property="username"    column="username"    />
+        <result property="nickname"    column="nickname"    />
+        <result property="password"    column="password"    />
+        <result property="avatar"    column="avatar"    />
+        <result property="power"    column="power"    />
+        <result property="chatConfigJson"    column="chat_config_json"    />
+        <result property="chatRolesJson"    column="chat_roles_json"    />
+        <result property="chatModelsJson"    column="chat_models_json"    />
+        <result property="status"    column="status"    />
+        <result property="vip"    column="vip"    />
+        <result property="expiredTime"    column="expired_time"    />
+        <result property="loginIp"    column="login_ip"    />
+        <result property="loginDate"    column="login_date"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectUserVo">
+        select id, username, nickname, password, avatar, power, chat_config_json, chat_roles_json, chat_models_json, status, vip, expired_time, login_ip, login_date, create_time, update_time from easyai_user
+    </sql>
+    <select id="selectUserByUserName" parameterType="String">
+        <include refid="selectUserVo"/>
+        where username = #{username}
+    </select>
+
+    <select id="selectUserById" resultType="User">
+        <include refid="selectUserVo"/>
+        where id=#{id}
+    </select>
+
+    <update id="addUserPowerById">
+        update easyai_user
+        set power=power + #{reward}
+        where id = #{id}
+    </update>
+    <update id="updatePasswordByUserName">
+        update easyai_user
+        set password = #{password}
+        where username = #{username}
+    </update>
+
+
+    <insert id="insertUser" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        insert into easyai_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">username,</if>
+            <if test="nickname != null">nickname,</if>
+            <if test="password != null">password,</if>
+            <if test="avatar != null">avatar,</if>
+            <if test="power != null">power,</if>
+            <if test="chatConfigJson != null">chat_config_json,</if>
+            <if test="chatRolesJson != null">chat_roles_json,</if>
+            <if test="chatModelsJson != null">chat_models_json,</if>
+            <if test="status != null">status,</if>
+            <if test="vip != null">vip,</if>
+            <if test="expiredTime != null">expired_time,</if>
+            <if test="loginIp != null">login_ip,</if>
+            <if test="loginDate != null">login_date,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="username != null and username != ''">#{username},</if>
+            <if test="nickname != null">#{nickname},</if>
+            <if test="password != null">#{password},</if>
+            <if test="avatar != null">#{avatar},</if>
+            <if test="power != null">#{power},</if>
+            <if test="chatConfigJson != null">#{chatConfigJson},</if>
+            <if test="chatRolesJson != null">#{chatRolesJson},</if>
+            <if test="chatModelsJson != null">#{chatModelsJson},</if>
+            <if test="status != null">#{status},</if>
+            <if test="vip != null">#{vip},</if>
+            <if test="expiredTime != null">#{expiredTime},</if>
+            <if test="loginIp != null">#{loginIp},</if>
+            <if test="loginDate != null">#{loginDate},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+</mapper>

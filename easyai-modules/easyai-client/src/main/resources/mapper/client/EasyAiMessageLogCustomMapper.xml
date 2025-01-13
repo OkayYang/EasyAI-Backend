@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.EasyAiMessageLogCustomMapper">
+
+    <resultMap type="EasyAiMessageLog" id="EasyAiMessageLogResult">
+        <result property="messageLogId"    column="message_log_id"    />
+        <result property="sessionId"    column="session_id"    />
+        <result property="messageId"    column="message_id"    />
+        <result property="email"    column="email"    />
+        <result property="content"    column="content"    />
+        <result property="inputToken"    column="input_token"    />
+        <result property="outputToken"    column="output_token"    />
+        <result property="totalToken"    column="total_token"    />
+        <result property="modelName"    column="model_name"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectEasyAiMessageLogVo">
+        select message_log_id, session_id, message_id, email, content, input_token, output_token, total_token, model_name, create_time from easyai_message_log
+    </sql>
+
+
+</mapper>

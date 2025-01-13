@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.base.mapper.UserMouthLogMapper">
+
+    <resultMap type="UserMouthLog" id="UserMouthLogResult">
+        <result property="mouthUserId"    column="mouth_user_id"    />
+        <result property="email"    column="email"    />
+        <result property="category"    column="category"    />
+        <result property="reward"    column="reward"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectUserMouthLogVo">
+        select mouth_user_id, email, category, reward, create_time from easyai_user_mouth_log
+    </sql>
+
+    <select id="selectUserMouthLogList" parameterType="UserMouthLog" resultMap="UserMouthLogResult">
+        <include refid="selectUserMouthLogVo"/>
+        <where>
+            <if test="email != null  and email != ''"> and email = #{email}</if>
+            <if test="category != null  and category != ''"> and category = #{category}</if>
+            <if test="reward != null "> and reward = #{reward}</if>
+        </where>
+    </select>
+
+    <select id="selectUserMouthLogByMouthUserId" parameterType="Long" resultMap="UserMouthLogResult">
+        <include refid="selectUserMouthLogVo"/>
+        where mouth_user_id = #{mouthUserId}
+    </select>
+
+    <insert id="insertUserMouthLog" parameterType="UserMouthLog" useGeneratedKeys="true" keyProperty="mouthUserId">
+        insert into easyai_user_mouth_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="email != null">email,</if>
+            <if test="category != null">category,</if>
+            <if test="reward != null">reward,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="email != null">#{email},</if>
+            <if test="category != null">#{category},</if>
+            <if test="reward != null">#{reward},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateUserMouthLog" parameterType="UserMouthLog">
+        update easyai_user_mouth_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="email != null">email = #{email},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="reward != null">reward = #{reward},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where mouth_user_id = #{mouthUserId}
+    </update>
+
+    <delete id="deleteUserMouthLogByMouthUserId" parameterType="Long">
+        delete from easyai_user_mouth_log where mouth_user_id = #{mouthUserId}
+    </delete>
+
+    <delete id="deleteUserMouthLogByMouthUserIds" parameterType="String">
+        delete from easyai_user_mouth_log where mouth_user_id in
+        <foreach item="mouthUserId" collection="array" open="(" separator="," close=")">
+            #{mouthUserId}
+        </foreach>
+    </delete>
+</mapper>

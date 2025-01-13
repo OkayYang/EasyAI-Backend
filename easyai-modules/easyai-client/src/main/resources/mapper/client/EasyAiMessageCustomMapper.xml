@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.EasyAiMessageCustomMapper">
+
+    <resultMap type="EasyAiMessage" id="EasyAiMessageResult">
+        <result property="messageId" column="message_id"/>
+        <result property="sessionId" column="session_id"/>
+        <result property="email" column="email"/>
+        <result property="content" column="content"/>
+        <result property="role" column="role"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="modelName" column="model_name"/>
+        <result property="token" column="token"/>
+        <result property="contentStatus" column="content_status"/>
+        <result property="visualContentStatus" column="visual_content_status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectEasyAiMessageVo">
+        select message_id,
+               session_id,
+               email,
+               content,
+               role,
+               parent_id,
+               model_name,
+               token,
+               content_status,
+               visual_content_status,
+               create_time,
+               update_time
+        from easyai_message
+    </sql>
+
+    <select id="selectEasyAiMessageByParentId" resultMap="EasyAiMessageResult">
+        <include refid="selectEasyAiMessageVo"/>
+        where session_id=#{session_id} and message_id=#{parent_id} and email=#{email}
+    </select>
+
+    <insert id="insertEasyAiUserMessageWhenChat">
+        insert into easyai_message (message_id, session_id, email, content, role, parent_id, model_name)
+        values (#{message_id}, #{session_id}, #{email}, #{content}, #{role}, #{parent_id}, #{model_name})
+    </insert>
+
+    <insert id="insertEasyAiAIMessageWhenChat">
+        insert into easyai_message (message_id, session_id, email, role, parent_id, model_name)
+        values (#{message_id}, #{session_id}, #{email}, #{role}, #{parent_id}, #{model_name})
+    </insert>
+
+    <update id="updateEasyAiMessageStatus">
+        update easyai_message
+        set content_status=#{content_status}
+        where message_id = #{message_id}
+    </update>
+
+    <update id="updateEasyAiVisualMessageStatus">
+        update easyai_message
+        set visual_content_status=#{visual_content_status}
+        where message_id = #{message_id}
+    </update>
+
+    <update id="updateEasyAiMessageWhenComplete">
+        update easyai_message
+        set content_status=#{content_status},
+            token=#{output_token}
+        where message_id = #{message_id}
+    </update>
+
+    <update id="updateEasyAiMessageVisualWhenComplete">
+        update easyai_message
+        set content=#{content},
+            visual_content_status=#{visual_content_status}
+        where message_id = #{message_id}
+    </update>
+
+    <update id="updateEasyAiParentMessageInputToken">
+        update easyai_message
+        set token=#{input_token}
+        where message_id = #{parent_id}
+    </update>
+
+
+    <select id="getMessageListBySessionId" resultMap="EasyAiMessageResult">
+            WITH RECURSIVE message_hierarchy AS (
+                SELECT *
+                FROM easyai_message
+                WHERE session_id = #{sessionId} AND parent_id IS NULL
+                UNION ALL
+                SELECT em.*
+                FROM easyai_message em
+                         INNER JOIN message_hierarchy mh ON em.parent_id = mh.message_id
+            )
+            SELECT * FROM message_hierarchy
+
+    </select>
+
+</mapper>

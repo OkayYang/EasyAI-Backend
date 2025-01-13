@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.MouthKeyCustomMapper">
+
+    <resultMap type="MouthKey" id="MouthKeyResult">
+        <result property="mouthKeyId"    column="mouth_key_id"    />
+        <result property="category"    column="category"    />
+        <result property="reward"    column="reward"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="expireTime"    column="expire_time"    />
+    </resultMap>
+
+    <sql id="selectMouthKeyVo">
+        select mouth_key_id, category, reward, create_time, expire_time from easyai_mouth_key
+    </sql>
+
+    <select id="getMouthKeyByCategory" resultMap="MouthKeyResult">
+        <include refid="selectMouthKeyVo"/>
+        where category=#{category}
+    </select>
+
+
+</mapper>

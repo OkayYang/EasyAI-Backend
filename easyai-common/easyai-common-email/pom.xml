@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.easyai</groupId>
+        <artifactId>easyai-common</artifactId>
+        <version>3.6.5</version>
+    </parent>
+
+    <artifactId>easyai-common-email</artifactId>
+
+    <name>easyai-common-email</name>
+
+    <description>
+        easyai-common-email邮件服务
+    </description>
+
+    <dependencies>
+
+        <!-- SpringBoot Boot Mail -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+
+
+    </dependencies>
+</project>

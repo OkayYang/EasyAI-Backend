@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.CardKeyCustomMapper">
+
+    <resultMap type="CardKey" id="CardKeyResult">
+        <result property="cardKeyId"    column="card_key_id"    />
+        <result property="cardKey"    column="card_key"    />
+        <result property="reward"    column="reward"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="category"    column="category"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectCardKeyVo">
+        select card_key_id, card_key, reward, create_time, expire_time, category, status from easyai_card_key
+    </sql>
+
+    <select id="selectCardKeyByKey" resultType="CardKey">
+        <include refid="selectCardKeyVo"/>
+        where card_key=#{card_key}
+    </select>
+
+    <update id="updateCardKeyStatus">
+        update easyai_card_key set status=#{status}
+        where card_key=#{card_key}
+    </update>
+
+
+
+</mapper>

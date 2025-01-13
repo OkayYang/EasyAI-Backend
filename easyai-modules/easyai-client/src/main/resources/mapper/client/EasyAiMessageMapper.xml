@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.base.mapper.EasyAiMessageMapper">
+
+    <resultMap type="EasyAiMessage" id="EasyAiMessageResult">
+        <result property="messageId"    column="message_id"    />
+        <result property="sessionId"    column="session_id"    />
+        <result property="email"    column="email"    />
+        <result property="content"    column="content"    />
+        <result property="role"    column="role"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="modelName"    column="model_name"    />
+        <result property="token"    column="token"    />
+        <result property="contentStatus"    column="content_status"    />
+        <result property="visualContentStatus"    column="visual_content_status"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectEasyAiMessageVo">
+        select message_id, session_id, email, content, role, parent_id, model_name, token, content_status, visual_content_status, create_time, update_time from easyai_message
+    </sql>
+
+    <select id="selectEasyAiMessageList" parameterType="EasyAiMessage" resultMap="EasyAiMessageResult">
+        <include refid="selectEasyAiMessageVo"/>
+        <where>
+            <if test="sessionId != null  and sessionId != ''"> and session_id = #{sessionId}</if>
+            <if test="email != null  and email != ''"> and email = #{email}</if>
+            <if test="role != null  and role != ''"> and role = #{role}</if>
+            <if test="parentId != null  and parentId != ''"> and parent_id = #{parentId}</if>
+            <if test="modelName != null  and modelName != ''"> and model_name like concat('%', #{modelName}, '%')</if>
+            <if test="token != null "> and token = #{token}</if>
+            <if test="contentStatus != null  and contentStatus != ''"> and content_status = #{contentStatus}</if>
+            <if test="visualContentStatus != null  and visualContentStatus != ''"> and visual_content_status = #{visualContentStatus}</if>
+            <if test="createTime != null "> and create_time = #{createTime}</if>
+            <if test="updateTime != null "> and update_time = #{updateTime}</if>
+        </where>
+    </select>
+
+    <select id="selectEasyAiMessageByMessageId" parameterType="String" resultMap="EasyAiMessageResult">
+        <include refid="selectEasyAiMessageVo"/>
+        where message_id = #{messageId}
+    </select>
+
+    <insert id="insertEasyAiMessage" parameterType="EasyAiMessage">
+        insert into easyai_message
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="messageId != null">message_id,</if>
+            <if test="sessionId != null">session_id,</if>
+            <if test="email != null">email,</if>
+            <if test="content != null">content,</if>
+            <if test="role != null">role,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="modelName != null">model_name,</if>
+            <if test="token != null">token,</if>
+            <if test="contentStatus != null">content_status,</if>
+            <if test="visualContentStatus != null">visual_content_status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="messageId != null">#{messageId},</if>
+            <if test="sessionId != null">#{sessionId},</if>
+            <if test="email != null">#{email},</if>
+            <if test="content != null">#{content},</if>
+            <if test="role != null">#{role},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="modelName != null">#{modelName},</if>
+            <if test="token != null">#{token},</if>
+            <if test="contentStatus != null">#{contentStatus},</if>
+            <if test="visualContentStatus != null">#{visualContentStatus},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateEasyAiMessage" parameterType="EasyAiMessage">
+        update easyai_message
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sessionId != null">session_id = #{sessionId},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="role != null">role = #{role},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="modelName != null">model_name = #{modelName},</if>
+            <if test="token != null">token = #{token},</if>
+            <if test="contentStatus != null">content_status = #{contentStatus},</if>
+            <if test="visualContentStatus != null">visual_content_status = #{visualContentStatus},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where message_id = #{messageId}
+    </update>
+
+    <delete id="deleteEasyAiMessageByMessageId" parameterType="String">
+        delete from easyai_message where message_id = #{messageId}
+    </delete>
+
+    <delete id="deleteEasyAiMessageByMessageIds" parameterType="String">
+        delete from easyai_message where message_id in
+        <foreach item="messageId" collection="array" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </delete>
+</mapper>

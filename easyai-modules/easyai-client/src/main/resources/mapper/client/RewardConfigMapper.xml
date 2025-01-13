@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.base.mapper.RewardConfigMapper">
+
+    <resultMap type="RewardConfig" id="RewardConfigResult">
+        <result property="rewardConfigId" column="reward_config_id"/>
+        <result property="name" column="name"/>
+        <result property="reward" column="reward"/>
+        <result property="detail" column="detail"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <sql id="selectRewardConfigVo">
+        select reward_config_id, name, reward, detail, create_time, update_time, status
+        from easyai_reward_config
+    </sql>
+
+    <select id="selectRewardConfigList" parameterType="RewardConfig" resultMap="RewardConfigResult">
+        <include refid="selectRewardConfigVo"/>
+        <where>
+            <if test="name != null  and name != ''">and name like concat('%', #{name}, '%')</if>
+            <if test="reward != null ">and reward = #{reward}</if>
+            <if test="detail != null  and detail != ''">and detail = #{detail}</if>
+            <if test="status != null  and status != ''">and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectRewardConfigByRewardConfigId" parameterType="Long" resultMap="RewardConfigResult">
+        <include refid="selectRewardConfigVo"/>
+        where reward_config_id = #{rewardConfigId}
+    </select>
+
+    <select id="selectRewardConfigByName" resultMap="RewardConfigResult">
+        <include refid="selectRewardConfigVo"/>
+        where name=#{name}
+    </select>
+
+    <insert id="insertRewardConfig" parameterType="RewardConfig" useGeneratedKeys="true" keyProperty="rewardConfigId">
+        insert into easyai_reward_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="reward != null">reward,</if>
+            <if test="detail != null">detail,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="status != null">status,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="reward != null">#{reward},</if>
+            <if test="detail != null">#{detail},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="status != null">#{status},</if>
+        </trim>
+    </insert>
+
+    <update id="updateRewardConfig" parameterType="RewardConfig">
+        update easyai_reward_config
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="reward != null">reward = #{reward},</if>
+            <if test="detail != null">detail = #{detail},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where reward_config_id = #{rewardConfigId}
+    </update>
+
+    <delete id="deleteRewardConfigByRewardConfigId" parameterType="Long">
+        delete
+        from easyai_reward_config
+        where reward_config_id = #{rewardConfigId}
+    </delete>
+
+    <delete id="deleteRewardConfigByRewardConfigIds" parameterType="String">
+        delete from easyai_reward_config where reward_config_id in
+        <foreach item="rewardConfigId" collection="array" open="(" separator="," close=")">
+            #{rewardConfigId}
+        </foreach>
+    </delete>
+</mapper>

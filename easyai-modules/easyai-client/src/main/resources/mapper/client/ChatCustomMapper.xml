@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.ChatCustomMapper">
+
+    <resultMap type="Chat" id="ChatResult">
+        <result property="sessionId"    column="session_id"    />
+        <result property="email"    column="email"    />
+        <result property="modelName"    column="model_name"    />
+        <result property="title"    column="title"    />
+        <result property="desc"    column="desc"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="status"    column="status"    />
+        <result property="memory"    column="memory"    />
+    </resultMap>
+
+    <sql id="selectChatVo">
+        select session_id, email, model_name, title, `desc`, create_time, update_time, status, memory from easyai_chat
+    </sql>
+
+    <update id="deleteChat">
+        update easyai_chat set status=#{status} where session_id=#{session_id}
+    </update>
+
+    <select id="getChatListByEmail" resultMap="ChatResult">
+        <include refid="selectChatVo"/>
+        where email = #{email} and status=#{status}
+    </select>
+
+    <select id="getChatBySessionId" resultMap="ChatResult">
+        <include refid="selectChatVo"/>
+        where session_id=#{session_id} and email=#{email} and status=#{status}
+    </select>
+
+    <select id="getChatMemory" parameterType="String" resultType="String">
+        SELECT memory FROM easyai_chat WHERE session_id = #{session_id}
+    </select>
+
+    <!-- 更新或插入消息 -->
+    <update id="updateChatMemory">
+        update easyai_chat set memory=#{memory} WHERE session_id = #{session_id}
+    </update>
+
+    <!-- 根据 session_id 删除消息 -->
+    <update id="deleteChatMemory">
+        update easyai_chat set memory=null WHERE session_id = #{session_id}
+    </update>
+
+
+</mapper>

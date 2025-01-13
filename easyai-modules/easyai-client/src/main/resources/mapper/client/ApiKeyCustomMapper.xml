@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.ApiKeyCustomMapper">
+
+    <resultMap type="ApiKey" id="ApiKeyResult">
+        <result property="id" column="id"/>
+        <result property="platform" column="platform"/>
+        <result property="apiName" column="api_name"/>
+        <result property="apiKey" column="api_key"/>
+        <result property="purpose" column="purpose"/>
+        <result property="proxyUrl" column="proxy_url"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="status" column="status"/>
+        <result property="isFinished" column="is_finished"/>
+    </resultMap>
+
+    <sql id="selectApiKeyVo">
+        select id,
+               platform,
+               api_name,
+               api_key,
+               purpose,
+               proxy_url,
+               create_time,
+               update_time,
+               status,
+               is_finished
+        from easyai_api_key
+    </sql>
+
+    <select id="getApiKeyListByPlatform" resultMap="ApiKeyResult">
+        <include refid="selectApiKeyVo"/>
+        where platform = #{platform} and status=#{status} and is_finished=#{finish}
+    </select>
+
+    <update id="updateApiKeyFinishStatus">
+        update easyai_api_key
+        set is_finished=#{finish}
+        where id = #{id}
+    </update>
+
+    <update id="updateApiKeyStatus">
+        update easyai_api_key
+        set status=#{status}
+        where id = #{id}
+    </update>
+</mapper>

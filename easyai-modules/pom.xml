@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.easyai</groupId>
+        <artifactId>easyai</artifactId>
+        <version>3.6.5</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <modules>
+        <module>easyai-system</module>
+        <module>easyai-gen</module>
+        <module>easyai-job</module>
+        <module>easyai-file</module>
+        <module>easyai-client</module>
+    </modules>
+
+    <artifactId>easyai-modules</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        easyai-modules业务模块
+    </description>
+
+</project>

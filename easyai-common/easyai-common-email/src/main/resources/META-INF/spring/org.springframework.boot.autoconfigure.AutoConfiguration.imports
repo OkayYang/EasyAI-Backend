@@ -1,0 +1,2 @@
+com.easyai.common.email.configure.EmailConfig
+com.easyai.common.email.service.EmailService

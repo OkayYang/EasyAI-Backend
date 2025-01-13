@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.base.mapper.ApiKeyMapper">
+
+    <resultMap type="ApiKey" id="ApiKeyResult">
+        <result property="id"    column="id"    />
+        <result property="platform"    column="platform"    />
+        <result property="apiName"    column="api_name"    />
+        <result property="apiKey"    column="api_key"    />
+        <result property="purpose"    column="purpose"    />
+        <result property="proxyUrl"    column="proxy_url"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="status"    column="status"    />
+        <result property="isFinished"    column="is_finished"    />
+    </resultMap>
+
+    <sql id="selectApiKeyVo">
+        select id, platform, api_name, api_key, purpose, proxy_url, create_time, update_time, status, is_finished from easyai_api_key
+    </sql>
+
+    <select id="selectApiKeyList" parameterType="ApiKey" resultMap="ApiKeyResult">
+        <include refid="selectApiKeyVo"/>
+        <where>
+            <if test="platform != null  and platform != ''"> and platform = #{platform}</if>
+            <if test="apiName != null  and apiName != ''"> and api_name like concat('%', #{apiName}, '%')</if>
+            <if test="apiKey != null  and apiKey != ''"> and api_key = #{apiKey}</if>
+            <if test="purpose != null  and purpose != ''"> and purpose = #{purpose}</if>
+            <if test="proxyUrl != null  and proxyUrl != ''"> and proxy_url = #{proxyUrl}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="isFinished != null  and isFinished != ''"> and is_finished = #{isFinished}</if>
+        </where>
+    </select>
+
+    <select id="selectApiKeyById" parameterType="Long" resultMap="ApiKeyResult">
+        <include refid="selectApiKeyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertApiKey" parameterType="ApiKey" useGeneratedKeys="true" keyProperty="id">
+        insert into easyai_api_key
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="platform != null and platform != ''">platform,</if>
+            <if test="apiName != null and apiName != ''">api_name,</if>
+            <if test="apiKey != null and apiKey != ''">api_key,</if>
+            <if test="purpose != null">purpose,</if>
+            <if test="proxyUrl != null">proxy_url,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="isFinished != null and isFinished != ''">is_finished,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="platform != null and platform != ''">#{platform},</if>
+            <if test="apiName != null and apiName != ''">#{apiName},</if>
+            <if test="apiKey != null and apiKey != ''">#{apiKey},</if>
+            <if test="purpose != null">#{purpose},</if>
+            <if test="proxyUrl != null">#{proxyUrl},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="isFinished != null and isFinished != ''">#{isFinished},</if>
+        </trim>
+    </insert>
+
+    <update id="updateApiKey" parameterType="ApiKey">
+        update easyai_api_key
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platform != null and platform != ''">platform = #{platform},</if>
+            <if test="apiName != null and apiName != ''">api_name = #{apiName},</if>
+            <if test="apiKey != null and apiKey != ''">api_key = #{apiKey},</if>
+            <if test="purpose != null">purpose = #{purpose},</if>
+            <if test="proxyUrl != null">proxy_url = #{proxyUrl},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="isFinished != null and isFinished != ''">is_finished = #{isFinished},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteApiKeyById" parameterType="Long">
+        delete from easyai_api_key where id = #{id}
+    </delete>
+
+    <delete id="deleteApiKeyByIds" parameterType="String">
+        delete from easyai_api_key where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

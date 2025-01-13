@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.base.mapper.CardKeyMapper">
+
+    <resultMap type="CardKey" id="CardKeyResult">
+        <result property="cardKeyId"    column="card_key_id"    />
+        <result property="cardKey"    column="card_key"    />
+        <result property="reward"    column="reward"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="category"    column="category"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectCardKeyVo">
+        select card_key_id, card_key, reward, create_time, expire_time, category, status from easyai_card_key
+    </sql>
+
+    <select id="selectCardKeyList" parameterType="CardKey" resultMap="CardKeyResult">
+        <include refid="selectCardKeyVo"/>
+        <where>
+            <if test="cardKey != null  and cardKey != ''"> and card_key = #{cardKey}</if>
+            <if test="reward != null "> and reward = #{reward}</if>
+            <if test="expireTime != null "> and expire_time = #{expireTime}</if>
+            <if test="category != null  and category != ''"> and category = #{category}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="selectCardKeyByCardKeyId" parameterType="Long" resultMap="CardKeyResult">
+        <include refid="selectCardKeyVo"/>
+        where card_key_id = #{cardKeyId}
+    </select>
+
+    <insert id="insertCardKey" parameterType="CardKey" useGeneratedKeys="true" keyProperty="cardKeyId">
+        insert into easyai_card_key
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cardKey != null">card_key,</if>
+            <if test="reward != null">reward,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="expireTime != null">expire_time,</if>
+            <if test="category != null">category,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cardKey != null">#{cardKey},</if>
+            <if test="reward != null">#{reward},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="expireTime != null">#{expireTime},</if>
+            <if test="category != null">#{category},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCardKey" parameterType="CardKey">
+        update easyai_card_key
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cardKey != null">card_key = #{cardKey},</if>
+            <if test="reward != null">reward = #{reward},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="expireTime != null">expire_time = #{expireTime},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where card_key_id = #{cardKeyId}
+    </update>
+
+    <insert id="batchInsertCardKey" parameterType="java.util.List">
+        INSERT INTO easyai_card_key (card_key,reward,create_time,expire_time,category,status)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.cardKey}, #{item.reward}, #{item.createTime}, #{item.expireTime},#{item.category},#{item.status})
+        </foreach>
+    </insert>
+
+    <delete id="deleteCardKeyByCardKeyId" parameterType="Long">
+        delete from easyai_card_key where card_key_id = #{cardKeyId}
+    </delete>
+
+    <delete id="deleteCardKeyByCardKeyIds" parameterType="String">
+        delete from easyai_card_key where card_key_id in
+        <foreach item="cardKeyId" collection="array" open="(" separator="," close=")">
+            #{cardKeyId}
+        </foreach>
+    </delete>
+</mapper>

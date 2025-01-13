@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.easyai.client.custom.mapper.EasyAiMessageErrorLogCustomMapper">
+
+    <resultMap type="EasyAiMessageErrorLog" id="EasyAiMessageErrorLogResult">
+        <result property="messageErrorLogId"    column="message_error_log_id"    />
+        <result property="sessionId"    column="session_id"    />
+        <result property="messageId"    column="message_id"    />
+        <result property="email"    column="email"    />
+        <result property="modelName"    column="model_name"    />
+        <result property="code"    column="code"    />
+        <result property="type"    column="type"    />
+        <result property="message"    column="message"    />
+        <result property="apiKey"    column="api_key"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectEasyAiMessageErrorLogVo">
+        select message_error_log_id, session_id, message_id, email, model_name, code, type, message, api_key, create_time, update_time from easyai_message_error_log
+    </sql>
+
+    <insert id="insertMessageErrorLog">
+        insert into easyai_message_error_log(session_id, message_id, email, code, type, message, api_key, model_name)
+        values (#{session_id}, #{message_id}, #{email}, #{code}, #{type}, #{message}, #{api_key}, #{model_name})
+    </insert>
+
+
+
+</mapper>
