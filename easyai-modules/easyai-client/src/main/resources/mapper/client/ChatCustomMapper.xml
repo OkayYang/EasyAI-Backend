@@ -24,9 +24,9 @@
         update easyai_chat set status=#{status} where session_id=#{session_id}
     </update>
 
-    <select id="getChatListByEmail" resultMap="ChatResult">
+    <select id="getChatListByEmailOrderByTime" resultMap="ChatResult">
         <include refid="selectChatVo"/>
-        where email = #{email} and status=#{status}
+        where email = #{email} and status=#{status} ORDER BY update_time DESC;
     </select>
 
     <select id="getChatBySessionId" resultMap="ChatResult">

@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -64,12 +65,13 @@ public class CardKeyCustomService implements ICardKeyCustomService {
         userCardLog.setCategory(cardKey.getCategory());
         userCardLog.setCardKey(key);
         userCardLog.setReward(reward);
+        userCardLog.setCreateTime(new Date());
         userCardLogCustomMapper.insertUserCardLog(userCardLog);
 
 
         // return
         CardRewardRespBody cardRewardRespBody = new CardRewardRespBody();
-        BeanUtils.copyProperties(cardKey, cardRewardRespBody);
+        BeanUtils.copyProperties(userCardLog, cardRewardRespBody);
         return cardRewardRespBody;
     }
 

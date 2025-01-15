@@ -13,12 +13,18 @@ import com.easyai.client.custom.service.apikey.ApiKeyCustomService;
 import com.easyai.client.custom.service.chat.IChatCustomService;
 import com.easyai.common.core.web.controller.BaseController;
 import com.easyai.common.core.web.domain.AjaxResult;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.ibatis.annotations.Delete;
 import org.aspectj.weaver.loadtime.Aj;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
 
 import java.util.List;
 
@@ -39,13 +45,15 @@ public class EasyAIChatController extends BaseController {
         List<ChatListRespBody> inviteUserList = chatCustomService.listAllChat();
         return AjaxResult.success(inviteUserList);
     }
+
     @DeleteMapping("/{session_id}")
-    public AjaxResult deleteChat(@PathVariable String session_id){
+    public AjaxResult deleteChat(@PathVariable String session_id) {
         chatCustomService.deleteChat(session_id);
         return AjaxResult.success();
     }
+
     @PatchMapping
-    public AjaxResult editChatTitle( @RequestBody EditTitleReqBody editTitleReqBody) {
+    public AjaxResult editChatTitle(@RequestBody EditTitleReqBody editTitleReqBody) {
         return toAjax(chatCustomService.updateChatTitle(editTitleReqBody));
 
     }
@@ -54,6 +62,5 @@ public class EasyAIChatController extends BaseController {
     public Flux<ChatStreamResp<?>> chat(@RequestBody ChatStreamReqBody chatStreamReqBody) {
         return chatCustomService.chat(chatStreamReqBody);
     }
-
 
 }

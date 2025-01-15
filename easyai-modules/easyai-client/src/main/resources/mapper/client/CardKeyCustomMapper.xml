@@ -18,7 +18,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select card_key_id, card_key, reward, create_time, expire_time, category, status from easyai_card_key
     </sql>
 
-    <select id="selectCardKeyByKey" resultType="CardKey">
+    <select id="selectCardKeyByKey" resultMap="CardKeyResult">
         <include refid="selectCardKeyVo"/>
         where card_key=#{card_key}
     </select>
