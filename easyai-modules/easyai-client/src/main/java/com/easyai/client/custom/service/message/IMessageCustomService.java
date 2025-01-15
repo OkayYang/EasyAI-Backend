@@ -1,5 +1,6 @@
 package com.easyai.client.custom.service.message;
 
+import com.easyai.client.custom.controller.message.vo.MessageListBody;
 import com.easyai.client.custom.controller.message.vo.MessageListRespBody;
 
 import java.util.List;
@@ -10,5 +11,5 @@ import java.util.List;
  */
 public interface IMessageCustomService {
 
-    List<MessageListRespBody> getMessageList(String session_id);
+    MessageListRespBody getMessageList(String session_id);
 }

@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import com.easyai.common.sensitive.annotation.Sensitive;
 import com.easyai.common.sensitive.enums.DesensitizedType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 
@@ -24,6 +25,7 @@ public class InviteListRespBody   {
   private Long reward;
 
   @JsonProperty("create_time")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   private Date createTime;
 
   public InviteListRespBody invitedEmail(String invitedEmail) {
