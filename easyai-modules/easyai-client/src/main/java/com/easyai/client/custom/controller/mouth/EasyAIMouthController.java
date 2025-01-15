@@ -21,13 +21,13 @@ public class EasyAIMouthController {
     @Autowired
     private MouthKeyCustomService mouthKeyCustomService;
 
-    @PostMapping("/inputMouthKey")
+    @PostMapping("/reward")
     public AjaxResult InputMouthKey(@RequestBody MouthRewardReqBody mouthRewardReqBody) {
         MouthRewardRespBody mouthRewardRespBody = mouthKeyCustomService.useMouthKey(mouthRewardReqBody);
         return AjaxResult.success(mouthRewardRespBody);
     }
 
-    @GetMapping("/getUsedMouthList")
+    @GetMapping("/list")
     public AjaxResult getUsedMouthList() {
         List<MouthKeyUsedListRespBody> mouthKeyUsedList = mouthKeyCustomService.getMouthKeyUsedList();
         return AjaxResult.success(mouthKeyUsedList);

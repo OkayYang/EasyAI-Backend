@@ -24,13 +24,13 @@ public class EasyAICardController {
     @Autowired
     private CardKeyCustomService cardKeyCustomService;
 
-    @PostMapping("/inputCardKey")
+    @PostMapping("/reward")
     public AjaxResult InputCardKey(@RequestBody UseCardKeyBody useCardKeyBody) {
         CardRewardRespBody cardRewardRespBody= cardKeyCustomService.useCardKey(useCardKeyBody);
         return AjaxResult.success(cardRewardRespBody);
     }
 
-    @GetMapping("/getUsedCardList")
+    @GetMapping("/list")
     public AjaxResult getUsedCardList() {
         List<CardKeyUsedListRespBody> cardUsedList = cardKeyCustomService.getCardUsedList();
         return AjaxResult.success(cardUsedList);

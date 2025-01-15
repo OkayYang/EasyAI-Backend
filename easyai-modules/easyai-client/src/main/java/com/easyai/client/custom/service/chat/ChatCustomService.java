@@ -4,6 +4,8 @@ import com.easyai.client.base.domain.ApiKey;
 import com.easyai.client.base.domain.Chat;
 import com.easyai.client.base.domain.ChatModel;
 import com.easyai.client.base.domain.EasyAiMessage;
+import com.easyai.client.base.service.IChatService;
+import com.easyai.client.base.service.impl.ChatServiceImpl;
 import com.easyai.client.custom.controller.chat.vo.*;
 import com.easyai.client.custom.enums.ChatStatusEnum;
 import com.easyai.client.custom.enums.MessageStatusEnum;
@@ -47,7 +49,7 @@ import static com.easyai.client.custom.constant.EasyAIConstants.EASYAI_USER;
  * @since 2024/12/17  18:58
  */
 @Service
-public class ChatCustomService implements IChatCustomService {
+public class ChatCustomService  implements IChatCustomService {
 
     @Autowired
     private ChatCustomMapper chatCustomMapper;
@@ -67,6 +69,9 @@ public class ChatCustomService implements IChatCustomService {
     @Autowired
     private OpenAiService openAiService;
 
+    @Autowired
+    private IChatService chatService;
+
 
     @Override
     public void deleteChat(String session_id) {
@@ -76,6 +81,13 @@ public class ChatCustomService implements IChatCustomService {
             throw new ServiceException("删除失败!会话不存在!");
         }
         chatCustomMapper.deleteChat(session_id, ChatStatusEnum.DELETE.getValue());
+    }
+
+    @Override
+    public int updateChatTitle(EditTitleReqBody editTitleReqBody) {
+        Chat chat = new Chat();
+        BeanUtils.copyProperties(editTitleReqBody,chat);
+        return chatService.updateChat(chat);
     }
 
 

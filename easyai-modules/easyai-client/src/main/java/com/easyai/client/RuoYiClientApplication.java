@@ -20,16 +20,6 @@ public class RuoYiClientApplication
 {
     public static void main(String[] args)
     {
-
-        // 添加代理
-        String proxy="127.0.0.1";
-        int port=7890;
-        System.setProperty("proxyType","4");
-        System.setProperty("proxyPort",Integer.toString(port));
-        System.setProperty("proxyHost",proxy);
-        System.setProperty("proxySet","true");
-
-
         SpringApplication.run(RuoYiClientApplication.class, args);
         System.out.println("(♥◠‿◠)ﾉﾞ  用户模块启动成功   ლ(´ڡ`ლ)ﾞ  \n" +
                 " .-------.       ____     __        \n" +
