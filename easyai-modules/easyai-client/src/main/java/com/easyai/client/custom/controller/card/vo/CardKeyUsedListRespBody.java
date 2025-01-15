@@ -2,6 +2,8 @@ package com.easyai.client.custom.controller.card.vo;
 
 import java.util.Date;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.*;
@@ -22,6 +24,7 @@ public class CardKeyUsedListRespBody   {
   private Long reward;
 
   @JsonProperty("create_time")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   private Date createTime;
 
   public CardKeyUsedListRespBody cardKey(String cardKey) {
