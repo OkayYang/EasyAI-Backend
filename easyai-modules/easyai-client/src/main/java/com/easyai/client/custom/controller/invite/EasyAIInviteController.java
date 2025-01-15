@@ -19,7 +19,7 @@ public class EasyAIInviteController {
     @Autowired
     private InviteUserCustomService inviteUserCustomService;
 
-    @GetMapping("/getInviteUserList")
+    @GetMapping("/list")
     public AjaxResult getInviteUserList() {
         List<InviteListRespBody> inviteUserList = inviteUserCustomService.getInviteUserList();
         return AjaxResult.success(inviteUserList);

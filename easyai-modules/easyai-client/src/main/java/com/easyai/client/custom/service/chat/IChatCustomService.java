@@ -4,6 +4,7 @@ import com.easyai.client.base.domain.EasyAiMessage;
 import com.easyai.client.custom.controller.chat.vo.ChatListRespBody;
 import com.easyai.client.custom.controller.chat.vo.ChatStreamReqBody;
 import com.easyai.client.custom.controller.chat.vo.ChatStreamResp;
+import com.easyai.client.custom.controller.chat.vo.EditTitleReqBody;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -19,5 +20,7 @@ public interface IChatCustomService {
     Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody);
 
     void deleteChat(String session_id);
+
+    int updateChatTitle(EditTitleReqBody editTitleReqBody);
 
 }

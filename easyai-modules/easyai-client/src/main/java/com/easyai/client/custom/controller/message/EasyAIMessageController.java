@@ -21,7 +21,7 @@ public class EasyAIMessageController {
     @Autowired
     private IMessageCustomService messageCustomService;
 
-    @GetMapping("/getMessageList")
+    @GetMapping("/list")
     public AjaxResult getMessageList(String session_id) {
         return AjaxResult.success(messageCustomService.getMessageList(session_id));
     }
