@@ -86,6 +86,11 @@ public class ChatCustomService  implements IChatCustomService {
     @Override
     public int updateChatTitle(EditTitleReqBody editTitleReqBody) {
         Chat chat = new Chat();
+        String email = SecurityUtils.getUsername();
+        Chat chatBySessionId = chatCustomMapper.getChatBySessionId(email, editTitleReqBody.getSessionId(), ChatStatusEnum.EXIST.getValue());
+        if (chatBySessionId == null) {
+            throw new ServiceException("更新失败!会话不存在!");
+        }
         BeanUtils.copyProperties(editTitleReqBody,chat);
         return chatService.updateChat(chat);
     }
