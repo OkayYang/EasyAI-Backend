@@ -99,7 +99,7 @@ public class ChatCustomService  implements IChatCustomService {
     @Override
     public List<ChatListRespBody> listAllChat() {
         String email = SecurityUtils.getUsername();
-        List<Chat> chatList = chatCustomMapper.getChatListByEmail(email, ChatStatusEnum.EXIST.getValue());
+        List<Chat> chatList = chatCustomMapper.getChatListByEmailOrderByTime(email, ChatStatusEnum.EXIST.getValue());
         List<ChatListRespBody> chatListRespBodyList = new ArrayList<>();
         for (Chat chat : chatList) {
             ChatListRespBody respBody = new ChatListRespBody();

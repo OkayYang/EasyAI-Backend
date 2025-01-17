@@ -15,6 +15,10 @@ import java.util.List;
  */
 public interface IChatCustomService {
 
+    /**
+     * 按时间排序 返回对话列表
+     * @return
+     */
     List<ChatListRespBody> listAllChat();
 
     Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody);

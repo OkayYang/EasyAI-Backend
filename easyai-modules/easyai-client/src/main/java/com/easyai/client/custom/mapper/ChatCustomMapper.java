@@ -14,7 +14,7 @@ public interface ChatCustomMapper extends ChatMapper {
 
     void deleteChat(String session_id,int status);
 
-    List<Chat> getChatListByEmail(@Param("email") String email,int status);
+    List<Chat> getChatListByEmailOrderByTime(@Param("email") String email,int status);
 
     Chat getChatBySessionId(String email,String session_id,int status);
 
