@@ -14,6 +14,7 @@ import com.easyai.client.custom.mapper.ChatCustomMapper;
 import com.easyai.client.custom.mapper.ChatModelCustomMapper;
 import com.easyai.client.custom.mapper.EasyAiMessageCustomMapper;
 import com.easyai.client.custom.service.apikey.ApiKeyCustomService;
+import com.easyai.client.custom.strategy.factory.ModelFactoryManager;
 import com.easyai.client.langchain4j.platform.openai.domain.OpenAiErrorMessage;
 import com.easyai.client.langchain4j.platform.openai.service.OpenAiService;
 import com.easyai.client.langchain4j.service.EasyAiService;
@@ -38,10 +39,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-import static com.easyai.client.custom.constant.EasyAIConstants.EASYAI_AI;
-import static com.easyai.client.custom.constant.EasyAIConstants.EASYAI_USER;
+import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
 
 /**
@@ -68,6 +69,9 @@ public class ChatCustomService implements IChatCustomService {
 
     @Autowired
     private PersistentChatMemoryStore persistentChatMemoryStore;
+
+    @Autowired
+    private ModelFactoryManager modelFactoryManager;
 
     @Autowired
     private OpenAiService openAiService;
@@ -144,16 +148,13 @@ public class ChatCustomService implements IChatCustomService {
         // 6. 创建响应流
         Sinks.Many<ChatStreamResp<?>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
-        // 7. 配置AI服务(目前默认openai)
-        StreamingChatLanguageModel chatModel = OpenAiStreamingChatModel.builder()
-                .apiKey(apiKey.getApiKey())
-                .modelName(chatStreamReqBody.getModelName())
-                .build();
+        // 7. 配置AI服务
+        StreamingChatLanguageModel chatModel = modelFactoryManager.createModel(apiKey,model);
 
         // 8.配置记忆历史
         ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
-                .maxMessages(10)
+                .maxMessages(MEMORY_SIZE)
                 .chatMemoryStore(persistentChatMemoryStore)
                 .build();
 
