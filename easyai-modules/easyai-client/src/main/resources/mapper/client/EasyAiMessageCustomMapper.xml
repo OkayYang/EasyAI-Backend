@@ -17,6 +17,7 @@
         <result property="visualContentStatus" column="visual_content_status"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+        <result property="createAt" column="create_at"/>
     </resultMap>
 
     <sql id="selectEasyAiMessageVo">
@@ -31,7 +32,8 @@
                content_status,
                visual_content_status,
                create_time,
-               update_time
+               update_time,
+               create_at
         from easyai_message
     </sql>
 
@@ -84,17 +86,10 @@
 
 
     <select id="getMessageListBySessionId" resultMap="EasyAiMessageResult">
-            WITH RECURSIVE message_hierarchy AS (
-                SELECT *
-                FROM easyai_message
-                WHERE session_id = #{sessionId} AND parent_id IS NULL
-                UNION ALL
-                SELECT em.*
-                FROM easyai_message em
-                         INNER JOIN message_hierarchy mh ON em.parent_id = mh.message_id
-            )
-            SELECT * FROM message_hierarchy
-
+        <include refid="selectEasyAiMessageVo"/>
+        WHERE session_id = #{sessionId}
+        ORDER BY create_at ASC
     </select>
+
 
 </mapper>

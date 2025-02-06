@@ -1,11 +1,8 @@
 package com.easyai.client.custom.service.chat;
 
-import com.easyai.client.base.domain.ApiKey;
-import com.easyai.client.base.domain.Chat;
-import com.easyai.client.base.domain.ChatModel;
-import com.easyai.client.base.domain.EasyAiMessage;
+import com.easyai.client.base.domain.*;
+import com.easyai.client.base.mapper.EasyAiMessageMapper;
 import com.easyai.client.base.service.IChatService;
-import com.easyai.client.base.service.impl.ChatServiceImpl;
 import com.easyai.client.custom.controller.chat.vo.*;
 import com.easyai.client.custom.enums.ChatStatusEnum;
 import com.easyai.client.custom.enums.MessageStatusEnum;
@@ -13,13 +10,16 @@ import com.easyai.client.custom.enums.MessageStreamResponsePhaseEnum;
 import com.easyai.client.custom.mapper.ChatCustomMapper;
 import com.easyai.client.custom.mapper.ChatModelCustomMapper;
 import com.easyai.client.custom.mapper.EasyAiMessageCustomMapper;
+import com.easyai.client.custom.mapper.UserCustomMapper;
 import com.easyai.client.custom.service.apikey.ApiKeyCustomService;
+import com.easyai.client.custom.strategy.factory.ModelFactoryManager;
 import com.easyai.client.langchain4j.platform.openai.domain.OpenAiErrorMessage;
 import com.easyai.client.langchain4j.platform.openai.service.OpenAiService;
 import com.easyai.client.langchain4j.service.EasyAiService;
 import com.easyai.client.langchain4j.store.PersistentChatMemoryStore;
 import com.easyai.client.langchain4j.utils.ParseInnerLLMError;
 import com.easyai.common.core.exception.ServiceException;
+import com.easyai.common.core.utils.DateUtils;
 import com.easyai.common.core.utils.uuid.UUID;
 import com.easyai.common.security.utils.SecurityUtils;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
@@ -40,8 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.easyai.client.custom.constant.EasyAIConstants.EASYAI_AI;
-import static com.easyai.client.custom.constant.EasyAIConstants.EASYAI_USER;
+import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
 
 /**
@@ -49,7 +48,7 @@ import static com.easyai.client.custom.constant.EasyAIConstants.EASYAI_USER;
  * @since 2024/12/17  18:58
  */
 @Service
-public class ChatCustomService  implements IChatCustomService {
+public class ChatCustomService implements IChatCustomService {
 
     @Autowired
     private ChatCustomMapper chatCustomMapper;
@@ -64,7 +63,16 @@ public class ChatCustomService  implements IChatCustomService {
     private EasyAiMessageCustomMapper easyAiMessageCustomMapper;
 
     @Autowired
-    private PersistentChatMemoryStore store;
+    private EasyAiMessageMapper easyAiMessageMapper;
+
+    @Autowired
+    private UserCustomMapper userCustomMapper;
+
+    @Autowired
+    private PersistentChatMemoryStore persistentChatMemoryStore;
+
+    @Autowired
+    private ModelFactoryManager modelFactoryManager;
 
     @Autowired
     private OpenAiService openAiService;
@@ -91,7 +99,7 @@ public class ChatCustomService  implements IChatCustomService {
         if (chatBySessionId == null) {
             throw new ServiceException("更新失败!会话不存在!");
         }
-        BeanUtils.copyProperties(editTitleReqBody,chat);
+        BeanUtils.copyProperties(editTitleReqBody, chat);
         return chatService.updateChat(chat);
     }
 
@@ -108,127 +116,161 @@ public class ChatCustomService  implements IChatCustomService {
         }
         return chatListRespBodyList;
     }
-
     @Override
     @Transactional
     public Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody) {
-        String givenModelName = chatStreamReqBody.getModelName();
-        // 检测请求的模型是否存在
-        ChatModel chatModel = checkModelExist(givenModelName);
-
         String email = SecurityUtils.getUsername();
-        String session_id = chatStreamReqBody.getSession_id();
-        String parent_id = chatStreamReqBody.getParent_id();
-
-        // 这一步执行完毕后 session_id 只有两种可能，一种是 session_id 为null 或session_id是数据库中存且合法的
-        if (session_id != null) {
-            // 请求提供了 session_id  则判断是否存在
-            checkExistChat(session_id, parent_id, email);
-        }
-        String userMessage = chatStreamReqBody.getUserMessage();
-        String platform = chatModel.getPlatform();
-        // 若未空 则新建会话
-        if (session_id == null) {
-            session_id = UUID.randomUUID().toString();
-            addChat(email, session_id, givenModelName);
-            parent_id = null;
+        // 1. 验证模型合法性以及用户token余额
+        ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
+        User user = userCustomMapper.selectUserByUserName(email);
+        Long balance = user.getPower();
+        if (balance<=0){
+            return Flux.just(new ChatStreamResp<>(
+                    null,
+                    "余额不足，无法进行对话，请充值！",
+                    MessageStreamResponsePhaseEnum.ERROR.getValue()
+            ));
         }
 
-        // 随机获取该平台下的一个api秘钥
-        ApiKey randomApiKey = apiKeyCustomService.getRandomApiKey(platform);
-        StringBuffer stringBuffer = new StringBuffer();
 
-        //初始化 提供者
+        // 2. 验证或创建会话
+        String sessionId;
+        String parentId;
+
+        if (chatStreamReqBody.getSession_id() != null) {
+            sessionId = chatStreamReqBody.getSession_id();
+            parentId = chatStreamReqBody.getParent_id();
+            checkParentMessageExist(sessionId, parentId, email);
+        } else {
+            sessionId = UUID.randomUUID().toString();
+            parentId = null;
+            createChatSession(email,chatStreamReqBody.getUserMessage(),sessionId, chatStreamReqBody.getModelName());
+
+        }
+
+        // 3. 获取API密钥
+        ApiKey apiKey = apiKeyCustomService.getRandomApiKey(model.getPlatform());
+
+        // 4. 生成消息ID
+        String userMessageId = UUID.randomUUID().toString();
+        String aiMessageId = UUID.randomUUID().toString();
+
+
+        // 6. 创建响应流
         Sinks.Many<ChatStreamResp<?>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
+        // 7. 配置AI服务
+        StreamingChatLanguageModel chatModel = modelFactoryManager.createModel(apiKey,model);
+
+        // 8.配置记忆历史
         ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
-                .maxMessages(10)
-                .chatMemoryStore(store)
-                .build();
-
-        StreamingChatLanguageModel streamingChatLanguageModel = OpenAiStreamingChatModel.builder()
-                .apiKey(randomApiKey.getApiKey())
-                .modelName(givenModelName)
+                .maxMessages(MEMORY_SIZE)
+                .chatMemoryStore(persistentChatMemoryStore)
                 .build();
 
         EasyAiService easyAiService = AiServices.builder(EasyAiService.class)
-                .streamingChatLanguageModel(streamingChatLanguageModel)
+                .streamingChatLanguageModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider)
                 .build();
+        // 8. 处理AI流式响应
+        StringBuffer stringBuffer = new StringBuffer();
+        sink.tryEmitNext(new ChatStreamResp<>(
+                sessionId,
+                new ChatStreamStartResp(parentId, userMessageId,
+                        aiMessageId, chatStreamReqBody.getModelName(),
+                        DateUtils.getNowDate()),
+                MessageStreamResponsePhaseEnum.START.getValue()));
+        easyAiService.tokenStream(sessionId,chatStreamReqBody.getUserMessage())
+                .onNext(val -> {
+                    stringBuffer.append(val);
+                    sink.tryEmitNext(new ChatStreamResp<>(
+                            sessionId,
+                            val,
+                            MessageStreamResponsePhaseEnum.CHAT.getValue()
+                    ));
+                })
+                .onError(err -> {
+                    OpenAiErrorMessage openAiErrorMessage =
+                            ParseInnerLLMError.parseOpenAiHttpExceptionMessage(err);
 
-        // 用户消息id生成
-        String user_message_id = UUID.randomUUID().toString();
-        // AI 消息生成 防止后面生成不好共享
-        String ai_message_id = UUID.randomUUID().toString();
-
-        // 基本数据预先插入
-        easyAiMessageCustomMapper.insertEasyAiUserMessageWhenChat(user_message_id, session_id, email, userMessage, EASYAI_USER, parent_id, givenModelName);
-        easyAiMessageCustomMapper.insertEasyAiAIMessageWhenChat(ai_message_id, session_id, email, EASYAI_AI, user_message_id, givenModelName);
-
-
-        // 由于lambda 缘故，必须使用finalSession_id
-        String session_id_cp = session_id;
-
-        // 生产者 生产情况
-        //预先传父message id 防止用户取消找不到父message id  时间与数据库对不上，但是感觉没必要 gpt自己都不显示时间
-        sink.tryEmitNext(new ChatStreamResp<>(session_id_cp, new ChatStreamStartResp(parent_id,user_message_id,ai_message_id,givenModelName, new Date()), MessageStreamResponsePhaseEnum.START.getValue()));
-        easyAiService.tokenStream(session_id_cp, userMessage)
-                .onNext((val) -> {
-                    System.out.println("gpt:" + val);
-                    sink.tryEmitNext(new ChatStreamResp<>(session_id_cp, val, MessageStreamResponsePhaseEnum.CHAT.getValue()));
-                }).onError(err -> {
-                    OpenAiErrorMessage openAiErrorMessage = ParseInnerLLMError.parseOpenAiHttpExceptionMessage(err);
-                    openAiService.handleInnerError(session_id_cp, ai_message_id, email, givenModelName, randomApiKey, openAiErrorMessage);
-                    easyAiMessageCustomMapper.updateEasyAiMessageStatus(ai_message_id, MessageStatusEnum.INNER_ERROR.getValue());
-                    sink.tryEmitNext(new ChatStreamResp<>(session_id_cp, "内部调用错误,不消耗任何token！", MessageStreamResponsePhaseEnum.ERROR.getValue()));
+                    openAiService.handleInnerError(
+                            sessionId, aiMessageId, email,
+                            chatStreamReqBody.getModelName(), apiKey, openAiErrorMessage
+                    );
+                    if (parentId==null){
+                        chatCustomMapper.deleteChatBySessionId(sessionId);
+                    }
+                    sink.tryEmitNext(new ChatStreamResp<>(
+                            sessionId,
+                            "内部错误,不消耗任何token！",
+                            MessageStreamResponsePhaseEnum.ERROR.getValue()
+                    ));
                     sink.tryEmitComplete();
-                }).onComplete((response) -> {
-                    // 这都是一些不紧急的操作，感觉下面操作可以异步 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
+                })
+                .onComplete(response -> {
+                    // 这都是一些不紧急的操作，下面操作可以异步，
+                    // 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
                     String finishReason = response.finishReason().toString();
                     TokenUsage tokenUsage = response.tokenUsage();
-                    int output_token = tokenUsage.outputTokenCount();
-                    int input_token = tokenUsage.inputTokenCount();
-                    easyAiMessageCustomMapper.updateEasyAiMessageWhenComplete(ai_message_id, finishReason, output_token);
-                    easyAiMessageCustomMapper.updateEasyAiParentMessageInputToken(user_message_id, input_token);
-                    sink.tryEmitNext(new ChatStreamResp<>(session_id_cp, new ChatStreamCompleteResp(ai_message_id, input_token, output_token, finishReason), MessageStreamResponsePhaseEnum.CONCLUDE.getValue()));
-                    System.out.println("gpt complete!");
-                    sink.tryEmitComplete();
-                }).start();
+                    int outputToken = tokenUsage.outputTokenCount()*model.getPrice();
+                    int inputToken = tokenUsage.inputTokenCount()*model.getPrice();
 
-        // 消费者 用户
-        return sink.asFlux().doOnNext((chatStreamResp) -> {
-            if (MessageStreamResponsePhaseEnum.CHAT.getValue().equals(chatStreamResp.getPhase())) {
-                stringBuffer.append((String) chatStreamResp.getContent());
-            }
-        }).doOnCancel(() -> {
-            easyAiMessageCustomMapper.updateEasyAiMessageVisualWhenComplete(ai_message_id, String.valueOf(stringBuffer), "cancel");
-            System.out.println("sink:cancel");
-        }).doOnComplete(() -> {
-            easyAiMessageCustomMapper.updateEasyAiMessageVisualWhenComplete(ai_message_id, String.valueOf(stringBuffer), FinishReason.STOP.toString());
-            System.out.println("sink:complete");
-        }).doOnError(err -> {
-            // todo
-            System.out.println("!!!!!!!!!!!!!" + err);
-        });
+                    EasyAiMessage userMessage = new EasyAiMessage();
+                    userMessage.setMessageId(userMessageId);
+                    userMessage.setSessionId(sessionId);
+                    userMessage.setEmail(email);
+                    userMessage.setContent(chatStreamReqBody.getUserMessage());
+                    userMessage.setRole(EASYAI_USER);
+                    userMessage.setParentId(parentId);
+                    userMessage.setModelName(chatStreamReqBody.getModelName());
+                    userMessage.setToken((long) inputToken);
+                    userMessage.setCreateAt(DateUtils.getNowDate().getTime());
+                    easyAiMessageMapper.insertEasyAiMessage(userMessage);
+
+                    EasyAiMessage aiMessage = new EasyAiMessage();
+                    aiMessage.setMessageId(aiMessageId);
+                    aiMessage.setSessionId(sessionId);
+                    aiMessage.setEmail(email);
+                    aiMessage.setContent(String.valueOf(stringBuffer));
+                    aiMessage.setRole(EASYAI_AI);
+                    aiMessage.setParentId(userMessageId);
+                    aiMessage.setModelName(chatStreamReqBody.getModelName());
+                    aiMessage.setToken((long) outputToken);
+                    aiMessage.setCreateAt(DateUtils.getNowDate().getTime());
+                    easyAiMessageMapper.insertEasyAiMessage(aiMessage);
+                    user.setPower(Math.max(0, balance - outputToken - inputToken));
+                    userCustomMapper.updateUser(user);
+                    sink.tryEmitNext(new ChatStreamResp<>(
+                            sessionId,
+                            new ChatStreamCompleteResp(
+                                    aiMessageId, inputToken, outputToken, finishReason
+                            ),
+                            MessageStreamResponsePhaseEnum.CONCLUDE.getValue()
+                    ));
+                    sink.tryEmitComplete();
+
+                })
+                .start();
+
+        // 9. 返回响应流
+        return sink.asFlux();
+
     }
 
 
     // 创建新对话逻辑
-    private void addChat(String email, String session_id, String model_name) {
-        Chat insertChat = new Chat();
-        insertChat.setEmail(email);
-        insertChat.setModelName(model_name);
-        insertChat.setSessionId(session_id);
-        chatCustomMapper.insertChat(insertChat);
+    private void createChatSession(String email,String userMessage, String session_id, String model_name) {
+        Chat chat = new Chat();
+        chat.setEmail(email);
+        if (userMessage.length() > 30) {
+            userMessage = userMessage.substring(0, 30);
+        }
+        chat.setTitle(userMessage);
+        chat.setModelName(model_name);
+        chat.setSessionId(session_id);
+        chatCustomMapper.insertChat(chat);
     }
-
-
-    private boolean isModelExist(String modelName) {
-        ChatModel selectedModel = chatModelCustomMapper.getModelByName(modelName);
-        return selectedModel != null;
-    }
-
 
     /**
      * 不存在该模型名则抛出异常
@@ -248,19 +290,11 @@ public class ChatCustomService  implements IChatCustomService {
      * @param parent_id
      * @param email
      */
-    private void checkExistChat(String session_id, String parent_id, String email) {
+    private void checkParentMessageExist(String session_id, String parent_id, String email) {
         EasyAiMessage easyAiMessage = easyAiMessageCustomMapper.selectEasyAiMessageByParentId(session_id, parent_id, email);
         if (easyAiMessage == null) {
-            //todo 异常描述需要修改一下
-            throw new RuntimeException("未找到该对话或未找到该父消息!");
+            throw new RuntimeException("异常请求!");
         }
     }
-
-
-    //todo  取消时 怎么计算token  还需解决
-    private void cancelChat() {
-
-    }
-
 
 }

@@ -30,7 +30,8 @@ public class EasyAIConstants {
     /**
      *  平台常量
      */
-    public static final String OPENAI = "OpenAI";
+    public static final String PLATFORM_OPENAI = "OpenAI";
+    public static final String PLATFORM_OLLAMA = "ollama";
 
 
     /**
@@ -39,6 +40,11 @@ public class EasyAIConstants {
     public static final String EASYAI_USER = "User";
 
     public static final String EASYAI_AI = "AI";
+
+    /**
+     * 记忆最大值
+     */
+    public static final int MEMORY_SIZE = 10;
 
 
 

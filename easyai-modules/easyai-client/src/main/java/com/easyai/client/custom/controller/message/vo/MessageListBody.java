@@ -12,17 +12,12 @@ import java.util.Date;
 @Data
 public class MessageListBody {
     private String content;
-    private String email;
     private String messageId;
     private String modelName;
     private String parentId;
     private String role;
     private String sessionId;
     private Long token;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date createTime;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private Date updateTime;
-    private String visualContentStatus;
+    private Long createAt;
 }
 

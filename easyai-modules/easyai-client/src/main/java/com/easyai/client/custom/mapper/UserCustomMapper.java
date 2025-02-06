@@ -13,6 +13,7 @@ public interface UserCustomMapper extends UserMapper{
      * @return 用户
      */
     public User selectUserByUserName(String username);
+    public int updatePowerByUserName(@Param("username") String username, @Param("power") int power);
 
     public User selectUserById(Long id);
 

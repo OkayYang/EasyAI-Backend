@@ -46,6 +46,11 @@
         set password = #{password}
         where username = #{username}
     </update>
+    <update id="updatePowerByUserName">
+        update easyai_user
+        set power=#{power}
+        where username = #{username}
+    </update>
 
 
     <insert id="insertUser" parameterType="User" useGeneratedKeys="true" keyProperty="id">
