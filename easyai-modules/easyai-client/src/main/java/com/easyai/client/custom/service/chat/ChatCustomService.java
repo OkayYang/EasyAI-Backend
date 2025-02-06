@@ -136,10 +136,8 @@ public class ChatCustomService implements IChatCustomService {
         // 2. 验证或创建会话
         String sessionId;
         String parentId;
-        String title = chatStreamReqBody.getUserMessage();
-        if (title.length() > 30) {
-            title = title.substring(0, 30);
-        }
+        String title = null;
+
         if (chatStreamReqBody.getSession_id() != null) {
             sessionId = chatStreamReqBody.getSession_id();
             parentId = chatStreamReqBody.getParent_id();
@@ -147,6 +145,10 @@ public class ChatCustomService implements IChatCustomService {
         } else {
             sessionId = UUID.randomUUID().toString();
             parentId = null;
+            title = chatStreamReqBody.getUserMessage();
+            if (title.length() > 30) {
+                title = title.substring(0, 30);
+            }
             createChatSession(email,title,sessionId, chatStreamReqBody.getModelName());
 
         }
