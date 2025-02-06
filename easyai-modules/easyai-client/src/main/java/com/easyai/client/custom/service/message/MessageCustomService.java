@@ -1,19 +1,26 @@
 package com.easyai.client.custom.service.message;
 
 import com.easyai.client.base.domain.Chat;
+import com.easyai.client.base.domain.ChatModel;
 import com.easyai.client.base.domain.EasyAiMessage;
 import com.easyai.client.custom.controller.message.vo.MessageListBody;
 import com.easyai.client.custom.controller.message.vo.MessageListRespBody;
+import com.easyai.client.custom.controller.unauth.vo.ModelRespBody;
+import com.easyai.client.custom.controller.usage.vo.UsageTokenDetailRespBody;
 import com.easyai.client.custom.enums.ChatStatusEnum;
 import com.easyai.client.custom.mapper.ChatCustomMapper;
 import com.easyai.client.custom.mapper.EasyAiMessageCustomMapper;
+import com.easyai.common.core.utils.SpringUtils;
 import com.easyai.common.security.utils.SecurityUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author XuShiPing
@@ -51,4 +58,11 @@ public class MessageCustomService implements IMessageCustomService {
         messageListRespBody.setMessageListBodyList(messageListRespBodies);
         return messageListRespBody;
     }
+
+    @Override
+    public List<UsageTokenDetailRespBody> getTokenUsageSummary() {
+        String email = SecurityUtils.getUsername();
+        return easyAiMessageCustomMapper.getTokenUsageSummaryByEmail(email);
+    }
+
 }

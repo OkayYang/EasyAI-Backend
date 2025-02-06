@@ -19,6 +19,11 @@
         <result property="updateTime" column="update_time"/>
         <result property="createAt" column="create_at"/>
     </resultMap>
+    <resultMap type="UsageTokenDetailRespBody" id="UsageTokenDetailRespBodyResult">
+        <result property="modelName" column="model_name"/>
+        <result property="usageCount" column="usage_count"/>
+
+    </resultMap>
 
     <sql id="selectEasyAiMessageVo">
         select message_id,
@@ -89,6 +94,14 @@
         <include refid="selectEasyAiMessageVo"/>
         WHERE session_id = #{sessionId}
         ORDER BY create_at ASC
+    </select>
+
+    <select id="getTokenUsageSummaryByEmail" resultMap="UsageTokenDetailRespBodyResult">
+        SELECT model_name, SUM(token) AS usage_count
+        FROM easyai_message
+        WHERE email = #{email}
+        GROUP BY model_name
+        ORDER BY model_name ASC
     </select>
 
 
