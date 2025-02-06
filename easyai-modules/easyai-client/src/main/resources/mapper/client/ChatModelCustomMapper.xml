@@ -27,6 +27,12 @@
         <include refid="selectChatModelVo" />
         where model_name=#{modelName}
     </select>
+    <select id="getAllModels" resultMap="ChatModelResult">
+        <include refid="selectChatModelVo" />
+        WHERE status = '0'
+        ORDER BY platform ASC, order_num ASC
+    </select>
+
 
 
 </mapper>

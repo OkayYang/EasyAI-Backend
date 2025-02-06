@@ -17,7 +17,7 @@ public class ChatStreamStartResp {
     String user_message_id;
     String ai_message_id;
     String model_name;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    Date createTime;
+    String title;
+    Long createTime;
 
 }

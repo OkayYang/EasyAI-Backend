@@ -15,4 +15,5 @@ public interface ChatModelCustomMapper extends ChatModelMapper
 {
 
     ChatModel getModelByName(String modelName);
+    List<ChatModel> getAllModels();
 }

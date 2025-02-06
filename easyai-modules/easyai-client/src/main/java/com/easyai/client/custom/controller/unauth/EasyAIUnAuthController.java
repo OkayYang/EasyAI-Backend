@@ -4,6 +4,7 @@ import com.easyai.client.custom.controller.unauth.vo.*;
 import com.easyai.client.custom.model.EasyAILoginUser;
 import com.easyai.client.custom.service.EasyAIEmailSendService;
 import com.easyai.client.custom.service.EasyAITokenService;
+import com.easyai.client.custom.service.model.IModelCustomService;
 import com.easyai.client.custom.service.user.IUserCustomService;
 import com.easyai.common.core.domain.R;
 import com.easyai.common.core.web.domain.AjaxResult;
@@ -28,6 +29,9 @@ public class EasyAIUnAuthController {
 
     @Autowired
     private EasyAITokenService easyAITokenService;
+
+    @Autowired
+    private IModelCustomService modelCustomService;
 
 
     @Operation(summary = "获取邮箱验证吗")
@@ -66,6 +70,13 @@ public class EasyAIUnAuthController {
 
         easyAIUserCustomService.register(registerReqBody, inviteUid);
         return AjaxResult.success("Register successfully.");
+
+    }
+
+    @Operation(summary = "接入模型列表")
+    @GetMapping("/model/list")
+    public AjaxResult modelList() {
+        return AjaxResult.success(modelCustomService.getAllModels());
 
     }
 

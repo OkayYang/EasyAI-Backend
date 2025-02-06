@@ -136,7 +136,10 @@ public class ChatCustomService implements IChatCustomService {
         // 2. 验证或创建会话
         String sessionId;
         String parentId;
-
+        String title = chatStreamReqBody.getUserMessage();
+        if (title.length() > 30) {
+            title = title.substring(0, 30);
+        }
         if (chatStreamReqBody.getSession_id() != null) {
             sessionId = chatStreamReqBody.getSession_id();
             parentId = chatStreamReqBody.getParent_id();
@@ -144,7 +147,7 @@ public class ChatCustomService implements IChatCustomService {
         } else {
             sessionId = UUID.randomUUID().toString();
             parentId = null;
-            createChatSession(email,chatStreamReqBody.getUserMessage(),sessionId, chatStreamReqBody.getModelName());
+            createChatSession(email,title,sessionId, chatStreamReqBody.getModelName());
 
         }
 
@@ -178,8 +181,8 @@ public class ChatCustomService implements IChatCustomService {
         sink.tryEmitNext(new ChatStreamResp<>(
                 sessionId,
                 new ChatStreamStartResp(parentId, userMessageId,
-                        aiMessageId, chatStreamReqBody.getModelName(),
-                        DateUtils.getNowDate()),
+                        aiMessageId, chatStreamReqBody.getModelName(),title,
+                        DateUtils.getNowDate().getTime()),
                 MessageStreamResponsePhaseEnum.START.getValue()));
         easyAiService.tokenStream(sessionId,chatStreamReqBody.getUserMessage())
                 .onNext(val -> {
@@ -260,13 +263,10 @@ public class ChatCustomService implements IChatCustomService {
 
 
     // 创建新对话逻辑
-    private void createChatSession(String email,String userMessage, String session_id, String model_name) {
+    private void createChatSession(String email,String title, String session_id, String model_name) {
         Chat chat = new Chat();
         chat.setEmail(email);
-        if (userMessage.length() > 30) {
-            userMessage = userMessage.substring(0, 30);
-        }
-        chat.setTitle(userMessage);
+        chat.setTitle(title);
         chat.setModelName(model_name);
         chat.setSessionId(session_id);
         chatCustomMapper.insertChat(chat);
