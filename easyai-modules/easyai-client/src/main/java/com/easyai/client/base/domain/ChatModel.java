@@ -45,7 +45,7 @@ public class ChatModel extends BaseEntity
 
     /** 算力点数 */
     @Excel(name = "算力点数")
-    private int price;
+    private Integer price;
 
     /** 排序优先级 */
     @Excel(name = "排序优先级")
@@ -118,12 +118,12 @@ public class ChatModel extends BaseEntity
     {
         return maxContext;
     }
-    public void setPrice(int price)
+    public void setPrice(Integer price)
     {
         this.price = price;
     }
 
-    public int getPrice()
+    public Integer getPrice()
     {
         return price;
     }
