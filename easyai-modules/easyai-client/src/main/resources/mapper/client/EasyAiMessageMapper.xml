@@ -17,10 +17,11 @@
         <result property="visualContentStatus"    column="visual_content_status"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateTime"    column="update_time"    />
+        <result property="createAt" column="create_at"/>
     </resultMap>
 
     <sql id="selectEasyAiMessageVo">
-        select message_id, session_id, email, content, role, parent_id, model_name, token, content_status, visual_content_status, create_time, update_time from easyai_message
+        select message_id, session_id, email, content, role, parent_id, model_name, token, content_status, visual_content_status, create_time, update_time,create_at from easyai_message
     </sql>
 
     <select id="selectEasyAiMessageList" parameterType="EasyAiMessage" resultMap="EasyAiMessageResult">
@@ -36,6 +37,8 @@
             <if test="visualContentStatus != null  and visualContentStatus != ''"> and visual_content_status = #{visualContentStatus}</if>
             <if test="createTime != null "> and create_time = #{createTime}</if>
             <if test="updateTime != null "> and update_time = #{updateTime}</if>
+            <if test="createAt != null "> and create_at = #{createAt}</if>
+
         </where>
     </select>
 
@@ -59,6 +62,8 @@
             <if test="visualContentStatus != null">visual_content_status,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
+            <if test="createAt != null ">create_at,</if>
+
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="messageId != null">#{messageId},</if>
@@ -72,6 +77,7 @@
             <if test="contentStatus != null">#{contentStatus},</if>
             <if test="visualContentStatus != null">#{visualContentStatus},</if>
             <if test="createTime != null">#{createTime},</if>
+            <if test="createAt != null ">#{createAt},</if>
             <if test="updateTime != null">#{updateTime},</if>
         </trim>
     </insert>
@@ -89,6 +95,8 @@
             <if test="contentStatus != null">content_status = #{contentStatus},</if>
             <if test="visualContentStatus != null">visual_content_status = #{visualContentStatus},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createAt != null ">create_at = #{createAt},</if>
+
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </trim>
         where message_id = #{messageId}

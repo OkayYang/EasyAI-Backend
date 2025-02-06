@@ -53,6 +53,18 @@ public class EasyAiMessage extends BaseEntity
     @Excel(name = "可视状态")
     private String visualContentStatus;
 
+    /** 创建时间戳 */
+    @Excel(name = "创建时间戳")
+    private Long createAt;
+
+    public Long getCreateAt() {
+        return createAt;
+    }
+
+    public void setCreateAt(Long createAt) {
+        this.createAt = createAt;
+    }
+
     public void setMessageId(String messageId)
     {
         this.messageId = messageId;
@@ -159,6 +171,7 @@ public class EasyAiMessage extends BaseEntity
                 .append("visualContentStatus", getVisualContentStatus())
                 .append("createTime", getCreateTime())
                 .append("updateTime", getUpdateTime())
+                .append("createAt", getCreateAt())
                 .toString();
     }
 }

@@ -214,6 +214,7 @@ public class ChatCustomService implements IChatCustomService {
                     userMessage.setParentId(parentId);
                     userMessage.setModelName(chatStreamReqBody.getModelName());
                     userMessage.setToken((long) inputToken);
+                    userMessage.setCreateAt(DateUtils.getNowDate().getTime());
                     easyAiMessageMapper.insertEasyAiMessage(userMessage);
 
                     EasyAiMessage aiMessage = new EasyAiMessage();
@@ -225,6 +226,7 @@ public class ChatCustomService implements IChatCustomService {
                     aiMessage.setParentId(userMessageId);
                     aiMessage.setModelName(chatStreamReqBody.getModelName());
                     aiMessage.setToken((long) outputToken);
+                    aiMessage.setCreateAt(DateUtils.getNowDate().getTime());
                     easyAiMessageMapper.insertEasyAiMessage(aiMessage);
 
                     sink.tryEmitNext(new ChatStreamResp<>(
