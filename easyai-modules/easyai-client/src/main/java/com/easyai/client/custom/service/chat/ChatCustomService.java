@@ -1,9 +1,6 @@
 package com.easyai.client.custom.service.chat;
 
-import com.easyai.client.base.domain.ApiKey;
-import com.easyai.client.base.domain.Chat;
-import com.easyai.client.base.domain.ChatModel;
-import com.easyai.client.base.domain.EasyAiMessage;
+import com.easyai.client.base.domain.*;
 import com.easyai.client.base.mapper.EasyAiMessageMapper;
 import com.easyai.client.base.service.IChatService;
 import com.easyai.client.custom.controller.chat.vo.*;
@@ -13,6 +10,7 @@ import com.easyai.client.custom.enums.MessageStreamResponsePhaseEnum;
 import com.easyai.client.custom.mapper.ChatCustomMapper;
 import com.easyai.client.custom.mapper.ChatModelCustomMapper;
 import com.easyai.client.custom.mapper.EasyAiMessageCustomMapper;
+import com.easyai.client.custom.mapper.UserCustomMapper;
 import com.easyai.client.custom.service.apikey.ApiKeyCustomService;
 import com.easyai.client.custom.strategy.factory.ModelFactoryManager;
 import com.easyai.client.langchain4j.platform.openai.domain.OpenAiErrorMessage;
@@ -68,6 +66,9 @@ public class ChatCustomService implements IChatCustomService {
     private EasyAiMessageMapper easyAiMessageMapper;
 
     @Autowired
+    private UserCustomMapper userCustomMapper;
+
+    @Autowired
     private PersistentChatMemoryStore persistentChatMemoryStore;
 
     @Autowired
@@ -118,11 +119,21 @@ public class ChatCustomService implements IChatCustomService {
     @Override
     @Transactional
     public Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody) {
-        // 1. 验证模型合法性
+        String email = SecurityUtils.getUsername();
+        // 1. 验证模型合法性以及用户token余额
         ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
+        User user = userCustomMapper.selectUserByUserName(email);
+        Long balance = user.getPower();
+        if (balance<=0){
+            return Flux.just(new ChatStreamResp<>(
+                    null,
+                    "余额不足，无法进行对话，请充值！",
+                    MessageStreamResponsePhaseEnum.ERROR.getValue()
+            ));
+        }
+
 
         // 2. 验证或创建会话
-        String email = SecurityUtils.getUsername();
         String sessionId;
         String parentId;
 
@@ -202,8 +213,8 @@ public class ChatCustomService implements IChatCustomService {
                     // 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
                     String finishReason = response.finishReason().toString();
                     TokenUsage tokenUsage = response.tokenUsage();
-                    int outputToken = tokenUsage.outputTokenCount();
-                    int inputToken = tokenUsage.inputTokenCount();
+                    int outputToken = tokenUsage.outputTokenCount()*model.getPrice();
+                    int inputToken = tokenUsage.inputTokenCount()*model.getPrice();
 
                     EasyAiMessage userMessage = new EasyAiMessage();
                     userMessage.setMessageId(userMessageId);
@@ -228,7 +239,8 @@ public class ChatCustomService implements IChatCustomService {
                     aiMessage.setToken((long) outputToken);
                     aiMessage.setCreateAt(DateUtils.getNowDate().getTime());
                     easyAiMessageMapper.insertEasyAiMessage(aiMessage);
-
+                    user.setPower(Math.max(0, balance - outputToken - inputToken));
+                    userCustomMapper.updateUser(user);
                     sink.tryEmitNext(new ChatStreamResp<>(
                             sessionId,
                             new ChatStreamCompleteResp(
