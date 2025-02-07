@@ -2,6 +2,7 @@ package com.easyai.client.custom.mapper;
 
 import com.easyai.client.base.domain.EasyAiMessage;
 import com.easyai.client.base.mapper.EasyAiMessageMapper;
+import com.easyai.client.custom.controller.usage.vo.UsageTokenDetailRespBody;
 
 import java.util.List;
 
@@ -29,6 +30,8 @@ public interface EasyAiMessageCustomMapper extends EasyAiMessageMapper {
     void updateEasyAiParentMessageInputToken(String parent_id, int input_token);
 
     List<EasyAiMessage> getMessageListBySessionId(String session_id);
+
+    List<UsageTokenDetailRespBody> getTokenUsageSummaryByEmail(String email);
 
 
 }
