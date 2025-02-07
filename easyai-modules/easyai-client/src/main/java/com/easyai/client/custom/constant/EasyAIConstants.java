@@ -12,6 +12,11 @@ public class EasyAIConstants {
     public static final String NAME = "EasyAI";
 
     /**
+     * 认证类型
+     */
+    public static final String AUTHORIZATION = "Authorization";
+
+    /**
      *  邀请奖励 配置 类型
      */
     public static final String INVITE_REWARD_TAG = "invite_reward";
@@ -31,7 +36,7 @@ public class EasyAIConstants {
      *  平台常量
      */
     public static final String PLATFORM_OPENAI = "OpenAI";
-    public static final String PLATFORM_OLLAMA = "ollama";
+    public static final String PLATFORM_OLLAMA = "Ollama";
 
 
     /**
