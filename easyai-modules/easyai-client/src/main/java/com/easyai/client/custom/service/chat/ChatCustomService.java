@@ -187,7 +187,7 @@ public class ChatCustomService implements IChatCustomService {
                         DateUtils.getNowDate().getTime()),
                 MessageStreamResponsePhaseEnum.START.getValue()));
         easyAiService.tokenStream(sessionId,chatStreamReqBody.getUserMessage())
-                .onNext(val -> {
+                .onPartialResponse(val -> {
                     stringBuffer.append(val);
                     sink.tryEmitNext(new ChatStreamResp<>(
                             sessionId,
@@ -213,7 +213,7 @@ public class ChatCustomService implements IChatCustomService {
                     ));
                     sink.tryEmitComplete();
                 })
-                .onComplete(response -> {
+                .onCompleteResponse(response -> {
                     // 这都是一些不紧急的操作，下面操作可以异步，
                     // 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
                     String finishReason = response.finishReason().toString();
