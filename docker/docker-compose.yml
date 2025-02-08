@@ -2,7 +2,7 @@ version : '3.8'
 services:
   easyai-nacos:
     container_name: easyai-nacos
-    image: nacos/nacos-server
+    image: nacos/nacos-server:v2.4.2
     build:
       context: ./nacos
     environment:
@@ -18,7 +18,7 @@ services:
       - easyai-mysql
   easyai-mysql:
     container_name: easyai-mysql
-    image: mysql:5.7
+    image: mysql:8.0
     build:
       context: ./mysql
     ports:
@@ -28,15 +28,14 @@ services:
       - ./mysql/logs:/logs
       - ./mysql/data:/var/lib/mysql
     command: [
-          'mysqld',
-          '--innodb-buffer-pool-size=80M',
-          '--character-set-server=utf8mb4',
-          '--collation-server=utf8mb4_unicode_ci',
-          '--default-time-zone=+8:00',
-          '--lower-case-table-names=1'
-        ]
+      'mysqld',
+      '--innodb-buffer-pool-size=80M',
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-time-zone=+8:00',
+      '--lower-case-table-names=1'
+    ]
     environment:
-      MYSQL_DATABASE: 'ry-cloud'
       MYSQL_ROOT_PASSWORD: password
   easyai-redis:
     container_name: easyai-redis
@@ -122,6 +121,17 @@ services:
       - easyai-mysql
     links:
       - easyai-mysql
+  easyai-modules-client:
+    container_name: easyai-modules-client
+    build:
+      context: ./easyai/modules/client
+      dockerfile: dockerfile
+    ports:
+      - "9204:9204"
+    depends_on:
+      - easyai-mysql
+    links:
+      - easyai-mysql
   easyai-modules-file:
     container_name: easyai-modules-file
     build:
@@ -130,7 +140,7 @@ services:
     ports:
       - "9300:9300"
     volumes:
-    - ./easyai/uploadPath:/home/easyai/uploadPath
+      - ./easyai/uploadPath:/home/easyai/uploadPath
   easyai-visual-monitor:
     container_name: easyai-visual-monitor
     build:
