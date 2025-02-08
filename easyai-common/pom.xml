@@ -18,6 +18,7 @@
         <module>easyai-common-datascope</module>
         <module>easyai-common-datasource</module>
         <module>easyai-common-email</module>
+        <module>easyai-common-sensitive</module>
     </modules>
 
     <artifactId>easyai-common</artifactId>
