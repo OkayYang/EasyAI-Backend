@@ -1,7 +1,7 @@
 # 基础镜像
-FROM  openjdk:8-jre
+FROM eclipse-temurin:23-jre-alpine
 # author
-MAINTAINER ruoyi
+MAINTAINER easyai
 
 # 挂载目录
 VOLUME /home/ruoyi

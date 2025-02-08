@@ -31,7 +31,7 @@ base(){
 
 # 启动程序模块（必须）
 modules(){
-	docker-compose up -d easyai-nginx easyai-gateway easyai-auth easyai-modules-system
+	docker-compose up -d easyai-nginx easyai-gateway easyai-auth easyai-modules-system easyai-modules-client
 }
 
 # 关闭所有环境/模块

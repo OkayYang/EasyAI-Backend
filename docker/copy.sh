@@ -9,8 +9,9 @@ usage() {
 
 # copy sql
 echo "begin copy sql "
-cp ../sql/ry_20240629.sql ./mysql/db
-cp ../sql/ry_config_20240914.sql ./mysql/db
+cp ../sql/ai-easyai-admin.sql ./mysql/db
+cp ../sql/ai-easyai-client.sql ./mysql/db
+cp ../sql/ai-easyai-config.sql ./mysql/db
 
 # copy html
 echo "begin copy html "
@@ -39,3 +40,5 @@ cp ../easyai-modules/easyai-job/target/easyai-modules-job.jar ./ruoyi/modules/jo
 echo "begin copy easyai-modules-gen "
 cp ../easyai-modules/easyai-gen/target/easyai-modules-gen.jar ./ruoyi/modules/gen/jar
 
+echo "begin copy easyai-modules-client "
+cp ../easyai-modules/easyai-client/target/easyai-modules-client.jar ./ruoyi/modules/client/jar

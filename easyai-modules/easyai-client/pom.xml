@@ -83,7 +83,6 @@
         <dependency>
             <groupId>com.easyai</groupId>
             <artifactId>easyai-common-sensitive</artifactId>
-            <version>3.6.5</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
