@@ -1,8 +1,8 @@
-package com.easyai.client.custom.strategy.impl;
+package com.easyai.client.langchain4j.factory.impl;
 
 import com.easyai.client.base.domain.ApiKey;
 import com.easyai.client.base.domain.ChatModel;
-import com.easyai.client.custom.strategy.ModelFactory;
+import com.easyai.client.langchain4j.factory.ModelFactory;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.springframework.stereotype.Service;
