@@ -22,6 +22,7 @@ public interface IChatCustomService {
     List<ChatListRespBody> listAllChat();
 
     Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody);
+    Flux<ChatStreamResp<?>> springAiChat(ChatStreamReqBody chatStreamReqBody);
 
     void deleteChat(String session_id);
 

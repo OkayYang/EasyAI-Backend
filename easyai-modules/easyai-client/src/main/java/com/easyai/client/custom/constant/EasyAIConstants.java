@@ -46,6 +46,8 @@ public class EasyAIConstants {
 
     public static final String EASYAI_AI = "AI";
 
+    public static final String CHAT_STATUS_STOP = "STOP";
+
     /**
      * 记忆最大值
      */
