@@ -60,7 +60,7 @@ public class EasyAIChatController extends BaseController {
 
     @PostMapping(produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatStreamResp<?>> chat(@RequestBody ChatStreamReqBody chatStreamReqBody) {
-        return chatCustomService.chat(chatStreamReqBody);
+        return chatCustomService.springAiChat(chatStreamReqBody);
     }
 
 }

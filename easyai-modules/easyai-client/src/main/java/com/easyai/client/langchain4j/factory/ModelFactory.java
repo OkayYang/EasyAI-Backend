@@ -1,4 +1,4 @@
-package com.easyai.client.custom.strategy;
+package com.easyai.client.langchain4j.factory;
 
 import com.easyai.client.base.domain.ApiKey;
 import com.easyai.client.base.domain.ChatModel;

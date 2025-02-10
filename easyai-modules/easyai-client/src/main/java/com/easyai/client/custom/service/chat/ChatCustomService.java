@@ -5,30 +5,32 @@ import com.easyai.client.base.mapper.EasyAiMessageMapper;
 import com.easyai.client.base.service.IChatService;
 import com.easyai.client.custom.controller.chat.vo.*;
 import com.easyai.client.custom.enums.ChatStatusEnum;
-import com.easyai.client.custom.enums.MessageStatusEnum;
 import com.easyai.client.custom.enums.MessageStreamResponsePhaseEnum;
 import com.easyai.client.custom.mapper.ChatCustomMapper;
 import com.easyai.client.custom.mapper.ChatModelCustomMapper;
 import com.easyai.client.custom.mapper.EasyAiMessageCustomMapper;
 import com.easyai.client.custom.mapper.UserCustomMapper;
 import com.easyai.client.custom.service.apikey.ApiKeyCustomService;
-import com.easyai.client.custom.strategy.factory.ModelFactoryManager;
+import com.easyai.client.langchain4j.factory.ModelFactoryManager;
 import com.easyai.client.langchain4j.platform.openai.domain.OpenAiErrorMessage;
 import com.easyai.client.langchain4j.platform.openai.service.OpenAiService;
 import com.easyai.client.langchain4j.service.EasyAiService;
 import com.easyai.client.langchain4j.store.PersistentChatMemoryStore;
 import com.easyai.client.langchain4j.utils.ParseInnerLLMError;
+import com.easyai.client.springai.factory.SpringAiChatModelFactoryManager;
 import com.easyai.common.core.exception.ServiceException;
 import com.easyai.common.core.utils.DateUtils;
+import com.easyai.common.core.utils.StringUtils;
 import com.easyai.common.core.utils.uuid.UUID;
 import com.easyai.common.security.utils.SecurityUtils;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import dev.langchain4j.model.output.FinishReason;
 import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.service.AiServices;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.InMemoryChatMemory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,8 +39,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
@@ -75,10 +77,16 @@ public class ChatCustomService implements IChatCustomService {
     private ModelFactoryManager modelFactoryManager;
 
     @Autowired
+    private SpringAiChatModelFactoryManager springAiChatModelFactoryManager;
+
+    @Autowired
     private OpenAiService openAiService;
 
     @Autowired
     private IChatService chatService;
+
+    @Autowired
+    private InMemoryChatMemory inMemoryChatMemory;
 
 
     @Override
@@ -116,6 +124,143 @@ public class ChatCustomService implements IChatCustomService {
         }
         return chatListRespBodyList;
     }
+    @Transactional
+    @Override
+    public Flux<ChatStreamResp<?>> springAiChat(ChatStreamReqBody chatStreamReqBody) {
+        String email = SecurityUtils.getUsername();
+        // 1. 验证模型合法性以及用户token余额
+        ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
+        User user = userCustomMapper.selectUserByUserName(email);
+        Long balance = user.getPower();
+        if (balance<=0&&model.getPrice()>0){
+            return Flux.just(new ChatStreamResp<>(
+                    null,
+                    "余额不足，无法进行对话，请充值！",
+                    MessageStreamResponsePhaseEnum.ERROR.getValue()
+            ));
+        }
+        // 2. 验证或创建会话
+        // 2. 验证或创建会话
+        String sessionId;
+        String parentId;
+        String title = null;
+
+        if (chatStreamReqBody.getSession_id() != null) {
+            sessionId = chatStreamReqBody.getSession_id();
+            parentId = chatStreamReqBody.getParent_id();
+            checkParentMessageExist(sessionId, parentId, email);
+        } else {
+            sessionId = UUID.randomUUID().toString();
+            parentId = null;
+            title = chatStreamReqBody.getUserMessage();
+            if (title.length() > 30) {
+                title = title.substring(0, 30);
+            }
+        }
+        // 3. 获取API密钥
+        ApiKey apiKey = apiKeyCustomService.getRandomApiKey(model.getPlatform());
+
+        // 4. 生成消息ID
+        String userMessageId = UUID.randomUUID().toString();
+        String aiMessageId = UUID.randomUUID().toString();
+
+
+        // 6. 创建响应流
+        Sinks.Many<ChatStreamResp<?>> sink = Sinks.many().unicast().onBackpressureBuffer();
+
+        // 7. 配置AI服务
+        org.springframework.ai.chat.model.ChatModel chatModel = springAiChatModelFactoryManager.createChatModel(apiKey,model);
+
+        // 8.处理AI流式响应
+        StringBuffer sb = new StringBuffer();
+        sink.tryEmitNext(new ChatStreamResp<>(
+                sessionId,
+                new ChatStreamStartResp(parentId, userMessageId,
+                        aiMessageId, chatStreamReqBody.getModelName(),title,
+                        DateUtils.getNowDate().getTime()),
+                MessageStreamResponsePhaseEnum.START.getValue()));
+
+        ChatClient chatClient = ChatClient.builder(chatModel)
+                .defaultAdvisors(
+                        new MessageChatMemoryAdvisor(inMemoryChatMemory,sessionId,MEMORY_SIZE)
+                )
+                .build();
+
+        String finalTitle = title;
+        chatClient.prompt(chatStreamReqBody.getUserMessage())
+                .stream()
+                .chatResponse()
+                .doOnNext(chatResponse -> {
+                    String text = chatResponse.getResult().getOutput().getContent();
+                    sb.append(text);
+                    sink.tryEmitNext(new ChatStreamResp<>(
+                            sessionId,
+                            text,
+                            MessageStreamResponsePhaseEnum.CHAT.getValue()
+                    ));
+                    String finishReason =chatResponse.getResult().getMetadata().getFinishReason();
+                    if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
+                        Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens();
+                        Long outputToken = chatResponse.getMetadata().getUsage().getGenerationTokens();
+                        if (parentId==null){
+                            createChatSession(email, finalTitle,sessionId, chatStreamReqBody.getModelName());
+                        }
+
+
+                        EasyAiMessage userMessage = new EasyAiMessage();
+                        userMessage.setMessageId(userMessageId);
+                        userMessage.setSessionId(sessionId);
+                        userMessage.setEmail(email);
+                        userMessage.setContent(chatStreamReqBody.getUserMessage());
+                        userMessage.setRole(EASYAI_USER);
+                        userMessage.setParentId(parentId);
+                        userMessage.setModelName(chatStreamReqBody.getModelName());
+                        userMessage.setToken(inputToken);
+                        userMessage.setCreateAt(DateUtils.getNowDate().getTime());
+                        easyAiMessageMapper.insertEasyAiMessage(userMessage);
+
+                        EasyAiMessage aiMessage = new EasyAiMessage();
+                        aiMessage.setMessageId(aiMessageId);
+                        aiMessage.setSessionId(sessionId);
+                        aiMessage.setEmail(email);
+                        aiMessage.setContent(String.valueOf(sb));
+                        aiMessage.setRole(EASYAI_AI);
+                        aiMessage.setParentId(userMessageId);
+                        aiMessage.setModelName(chatStreamReqBody.getModelName());
+                        aiMessage.setToken(outputToken);
+                        aiMessage.setCreateAt(DateUtils.getNowDate().getTime());
+                        easyAiMessageMapper.insertEasyAiMessage(aiMessage);
+                        user.setPower(Math.max(0, balance - outputToken - inputToken));
+                        userCustomMapper.updateUser(user);
+                        sink.tryEmitNext(new ChatStreamResp<>(
+                                sessionId,
+                                new ChatStreamCompleteResp(
+                                        aiMessageId, inputToken, outputToken, finishReason
+                                ),
+                                MessageStreamResponsePhaseEnum.CONCLUDE.getValue()
+                        ));
+                        sink.tryEmitComplete();
+
+                    }
+
+                })
+                .doOnError(throwable -> {
+                    sink.tryEmitNext(new ChatStreamResp<>(
+                            sessionId,
+                            "内部错误,不消耗任何token！",
+                            MessageStreamResponsePhaseEnum.ERROR.getValue()
+                    ));
+                    sink.tryEmitComplete();
+
+                })
+                .doOnComplete(sink::tryEmitComplete).subscribe();
+        return sink.asFlux();
+
+    }
+
+
+
+
     @Override
     @Transactional
     public Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody) {
@@ -218,8 +363,8 @@ public class ChatCustomService implements IChatCustomService {
                     // 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
                     String finishReason = response.finishReason().toString();
                     TokenUsage tokenUsage = response.tokenUsage();
-                    int outputToken = tokenUsage.outputTokenCount()*model.getPrice();
-                    int inputToken = tokenUsage.inputTokenCount()*model.getPrice();
+                    Long outputToken = (long) (tokenUsage.outputTokenCount()*model.getPrice());
+                    Long inputToken = (long) (tokenUsage.inputTokenCount()*model.getPrice());
 
                     EasyAiMessage userMessage = new EasyAiMessage();
                     userMessage.setMessageId(userMessageId);
