@@ -192,6 +192,7 @@ public class ChatCustomService implements IChatCustomService {
                 .chatResponse()
                 .doOnNext(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getContent();
+                    text = text.replaceAll("</?think>", "```");
                     sb.append(text);
                     sink.tryEmitNext(new ChatStreamResp<>(
                             sessionId,
@@ -200,8 +201,8 @@ public class ChatCustomService implements IChatCustomService {
                     ));
                     String finishReason =chatResponse.getResult().getMetadata().getFinishReason();
                     if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
-                        Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens();
-                        Long outputToken = chatResponse.getMetadata().getUsage().getGenerationTokens();
+                        Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens()*model.getPrice();
+                        Long outputToken = chatResponse.getMetadata().getUsage().getGenerationTokens()*model.getPrice();
                         if (parentId==null){
                             createChatSession(email, finalTitle,sessionId, chatStreamReqBody.getModelName());
                         }

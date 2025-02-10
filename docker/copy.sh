@@ -20,25 +20,25 @@ cp -r ../easyai-ui/dist/** ./nginx/html/dist
 
 # copy jar
 echo "begin copy easyai-gateway "
-cp ../easyai-gateway/target/easyai-gateway.jar ./ruoyi/gateway/jar
+cp ../easyai-gateway/target/easyai-gateway.jar ./easyai/gateway/jar
 
 echo "begin copy easyai-auth "
-cp ../easyai-auth/target/easyai-auth.jar ./ruoyi/auth/jar
+cp ../easyai-auth/target/easyai-auth.jar ./easyai/auth/jar
 
 echo "begin copy easyai-visual "
-cp ../easyai-visual/easyai-monitor/target/easyai-visual-monitor.jar  ./ruoyi/visual/monitor/jar
+cp ../easyai-visual/easyai-monitor/target/easyai-visual-monitor.jar  ./easyai/visual/monitor/jar
 
 echo "begin copy easyai-modules-system "
-cp ../easyai-modules/easyai-system/target/easyai-modules-system.jar ./ruoyi/modules/system/jar
+cp ../easyai-modules/easyai-system/target/easyai-modules-system.jar ./easyai/modules/system/jar
 
 echo "begin copy easyai-modules-file "
-cp ../easyai-modules/easyai-file/target/easyai-modules-file.jar ./ruoyi/modules/file/jar
+cp ../easyai-modules/easyai-file/target/easyai-modules-file.jar ./easyai/modules/file/jar
 
 echo "begin copy easyai-modules-job "
-cp ../easyai-modules/easyai-job/target/easyai-modules-job.jar ./ruoyi/modules/job/jar
+cp ../easyai-modules/easyai-job/target/easyai-modules-job.jar ./easyai/modules/job/jar
 
 echo "begin copy easyai-modules-gen "
-cp ../easyai-modules/easyai-gen/target/easyai-modules-gen.jar ./ruoyi/modules/gen/jar
+cp ../easyai-modules/easyai-gen/target/easyai-modules-gen.jar ./easyai/modules/gen/jar
 
 echo "begin copy easyai-modules-client "
-cp ../easyai-modules/easyai-client/target/easyai-modules-client.jar ./ruoyi/modules/client/jar
+cp ../easyai-modules/easyai-client/target/easyai-modules-client.jar ./easyai/modules/client/jar
