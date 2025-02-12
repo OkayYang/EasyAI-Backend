@@ -9,15 +9,40 @@ spring:
     name: easyai-client
   profiles:
     # 环境配置
-    active: dev
+    active: prod
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
   cloud:
     nacos:
       discovery:
         # 服务注册地址
-        server-addr: 127.0.0.1:8848
+        server-addr: easyai-nacos:8848
       config:
         # 配置中心地址
-        server-addr: 127.0.0.1:8848
+        server-addr: easyai-nacos:8848
+        # 配置文件格式
+        file-extension: yml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    nacos:
+      discovery:
+        # 服务注册地址
+        server-addr: localhost:8848
+      config:
+        # 配置中心地址
+        server-addr: localhost:8848
         # 配置文件格式
         file-extension: yml
         # 共享配置

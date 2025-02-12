@@ -15,6 +15,7 @@ cp ../sql/ai-easyai-config.sql ./mysql/db
 
 # copy html
 echo "begin copy html "
+mkdir -p ./nginx/html/dist  # 确保目标目录存在
 cp -r ../easyai-ui/dist/** ./nginx/html/dist
 
 
