@@ -2,9 +2,6 @@
 FROM nginx
 # author
 MAINTAINER easyai
-
-# 挂载目录
-VOLUME /home/easyai/projects/easyai-ui
 # 创建目录
 RUN mkdir -p /home/easyai/projects/easyai-ui
 # 指定路径
