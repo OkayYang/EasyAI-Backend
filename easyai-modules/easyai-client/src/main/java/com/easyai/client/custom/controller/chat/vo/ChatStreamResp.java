@@ -17,6 +17,11 @@ public class ChatStreamResp<T> {
     public ChatStreamResp() {
     }
 
+    public ChatStreamResp(T content, String phase) {
+        this.content = content;
+        this.phase = phase;
+    }
+
     public ChatStreamResp(String session_id, T content, String phase) {
         this.session_id = session_id;
         this.content = content;

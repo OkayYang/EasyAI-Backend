@@ -20,7 +20,6 @@ import com.easyai.client.langchain4j.utils.ParseInnerLLMError;
 import com.easyai.client.springai.factory.SpringAiChatModelFactoryManager;
 import com.easyai.common.core.exception.ServiceException;
 import com.easyai.common.core.utils.DateUtils;
-import com.easyai.common.core.utils.StringUtils;
 import com.easyai.common.core.utils.uuid.UUID;
 import com.easyai.common.security.utils.SecurityUtils;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
@@ -40,7 +39,7 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
@@ -172,9 +171,8 @@ public class ChatCustomService implements IChatCustomService {
         org.springframework.ai.chat.model.ChatModel chatModel = springAiChatModelFactoryManager.createChatModel(apiKey,model);
 
         // 8.处理AI流式响应
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sink.tryEmitNext(new ChatStreamResp<>(
-                sessionId,
                 new ChatStreamStartResp(parentId, userMessageId,
                         aiMessageId, chatStreamReqBody.getModelName(),title,
                         DateUtils.getNowDate().getTime()),
@@ -187,18 +185,32 @@ public class ChatCustomService implements IChatCustomService {
                 .build();
 
         String finalTitle = title;
+        AtomicBoolean flag = new AtomicBoolean(false);
         chatClient.prompt(chatStreamReqBody.getUserMessage())
                 .stream()
                 .chatResponse()
                 .doOnNext(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getContent();
-                    text = text.replaceAll("</?think>", "```");
-                    sb.append(text);
-                    sink.tryEmitNext(new ChatStreamResp<>(
-                            sessionId,
-                            text,
-                            MessageStreamResponsePhaseEnum.CHAT.getValue()
-                    ));
+                    if (text!=null){
+                        if ("<think>".equals(text)) {
+                            flag.set(true);
+                            text = "> Thinking";
+                        }
+                        if (flag.get()) {
+                            text = text.replace("\n\n", "\n");
+                        }
+                        if ("</think>".equals(text)) {
+                            flag.set(true);
+                            text = "";
+                        }
+                        // 替换结束标签
+                        sb.append(text);
+                        sink.tryEmitNext(new ChatStreamResp<>(
+                                sessionId,
+                                text,
+                                MessageStreamResponsePhaseEnum.CHAT.getValue()
+                        ));
+                    }
                     String finishReason =chatResponse.getResult().getMetadata().getFinishReason();
                     if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
                         Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens()*model.getPrice();
