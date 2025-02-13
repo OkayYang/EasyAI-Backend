@@ -123,6 +123,7 @@ public class ChatCustomService implements IChatCustomService {
         }
         return chatListRespBodyList;
     }
+
     @Transactional
     @Override
     public Flux<ChatStreamResp<?>> springAiChat(ChatStreamReqBody chatStreamReqBody) {
@@ -131,7 +132,7 @@ public class ChatCustomService implements IChatCustomService {
         ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
         User user = userCustomMapper.selectUserByUserName(email);
         Long balance = user.getPower();
-        if (balance<=0&&model.getPrice()>0){
+        if (balance <= 0 && model.getPrice() > 0) {
             return Flux.just(new ChatStreamResp<>(
                     null,
                     "余额不足，无法进行对话，请充值！",
@@ -168,19 +169,19 @@ public class ChatCustomService implements IChatCustomService {
         Sinks.Many<ChatStreamResp<?>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
         // 7. 配置AI服务
-        org.springframework.ai.chat.model.ChatModel chatModel = springAiChatModelFactoryManager.createChatModel(apiKey,model);
+        org.springframework.ai.chat.model.ChatModel chatModel = springAiChatModelFactoryManager.createChatModel(apiKey, model);
 
         // 8.处理AI流式响应
         StringBuilder sb = new StringBuilder();
-        sink.tryEmitNext(new ChatStreamResp<>(
+        sink.tryEmitNext(new ChatStreamResp<>(sessionId,
                 new ChatStreamStartResp(parentId, userMessageId,
-                        aiMessageId, chatStreamReqBody.getModelName(),title,
+                        aiMessageId, chatStreamReqBody.getModelName(), title,
                         DateUtils.getNowDate().getTime()),
                 MessageStreamResponsePhaseEnum.START.getValue()));
 
         ChatClient chatClient = ChatClient.builder(chatModel)
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(inMemoryChatMemory,sessionId,MEMORY_SIZE)
+                        new MessageChatMemoryAdvisor(inMemoryChatMemory, sessionId, MEMORY_SIZE)
                 )
                 .build();
 
@@ -192,10 +193,11 @@ public class ChatCustomService implements IChatCustomService {
                 .chatResponse()
                 .doOnNext(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getContent();
-                    if (flag){
-                        text = text.replace("<think>","> Thinking");
+                    if (flag) {
+                        text = text.replace("<think>", "> Thinking");
                         text = text.replace("\n\n", "\n");
-                        text = text.replace("</think>", "\n");                    }
+                        text = text.replace("</think>", "\n");
+                    }
                     // 替换结束标签
                     sb.append(text);
                     sink.tryEmitNext(new ChatStreamResp<>(
@@ -203,12 +205,12 @@ public class ChatCustomService implements IChatCustomService {
                             text,
                             MessageStreamResponsePhaseEnum.CHAT.getValue()
                     ));
-                    String finishReason =chatResponse.getResult().getMetadata().getFinishReason();
+                    String finishReason = chatResponse.getResult().getMetadata().getFinishReason();
                     if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
-                        Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens()*model.getPrice();
-                        Long outputToken = chatResponse.getMetadata().getUsage().getGenerationTokens()*model.getPrice();
-                        if (parentId==null){
-                            createChatSession(email, finalTitle,sessionId, chatStreamReqBody.getModelName());
+                        Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens() * model.getPrice();
+                        Long outputToken = chatResponse.getMetadata().getUsage().getGenerationTokens() * model.getPrice();
+                        if (parentId == null) {
+                            createChatSession(email, finalTitle, sessionId, chatStreamReqBody.getModelName());
                         }
 
 
@@ -264,8 +266,6 @@ public class ChatCustomService implements IChatCustomService {
     }
 
 
-
-
     @Override
     @Transactional
     public Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody) {
@@ -274,7 +274,7 @@ public class ChatCustomService implements IChatCustomService {
         ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
         User user = userCustomMapper.selectUserByUserName(email);
         Long balance = user.getPower();
-        if (balance<=0){
+        if (balance <= 0) {
             return Flux.just(new ChatStreamResp<>(
                     null,
                     "余额不足，无法进行对话，请充值！",
@@ -299,7 +299,7 @@ public class ChatCustomService implements IChatCustomService {
             if (title.length() > 30) {
                 title = title.substring(0, 30);
             }
-            createChatSession(email,title,sessionId, chatStreamReqBody.getModelName());
+            createChatSession(email, title, sessionId, chatStreamReqBody.getModelName());
 
         }
 
@@ -315,7 +315,7 @@ public class ChatCustomService implements IChatCustomService {
         Sinks.Many<ChatStreamResp<?>> sink = Sinks.many().unicast().onBackpressureBuffer();
 
         // 7. 配置AI服务
-        StreamingChatLanguageModel chatModel = modelFactoryManager.createModel(apiKey,model);
+        StreamingChatLanguageModel chatModel = modelFactoryManager.createModel(apiKey, model);
 
         // 8.配置记忆历史
         ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
@@ -333,10 +333,10 @@ public class ChatCustomService implements IChatCustomService {
         sink.tryEmitNext(new ChatStreamResp<>(
                 sessionId,
                 new ChatStreamStartResp(parentId, userMessageId,
-                        aiMessageId, chatStreamReqBody.getModelName(),title,
+                        aiMessageId, chatStreamReqBody.getModelName(), title,
                         DateUtils.getNowDate().getTime()),
                 MessageStreamResponsePhaseEnum.START.getValue()));
-        easyAiService.tokenStream(sessionId,chatStreamReqBody.getUserMessage())
+        easyAiService.tokenStream(sessionId, chatStreamReqBody.getUserMessage())
                 .onPartialResponse(val -> {
                     stringBuffer.append(val);
                     sink.tryEmitNext(new ChatStreamResp<>(
@@ -353,7 +353,7 @@ public class ChatCustomService implements IChatCustomService {
                             sessionId, aiMessageId, email,
                             chatStreamReqBody.getModelName(), apiKey, openAiErrorMessage
                     );
-                    if (parentId==null){
+                    if (parentId == null) {
                         chatCustomMapper.deleteChatBySessionId(sessionId);
                     }
                     sink.tryEmitNext(new ChatStreamResp<>(
@@ -368,8 +368,8 @@ public class ChatCustomService implements IChatCustomService {
                     // 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
                     String finishReason = response.finishReason().toString();
                     TokenUsage tokenUsage = response.tokenUsage();
-                    Long outputToken = (long) (tokenUsage.outputTokenCount()*model.getPrice());
-                    Long inputToken = (long) (tokenUsage.inputTokenCount()*model.getPrice());
+                    Long outputToken = (long) (tokenUsage.outputTokenCount() * model.getPrice());
+                    Long inputToken = (long) (tokenUsage.inputTokenCount() * model.getPrice());
 
                     EasyAiMessage userMessage = new EasyAiMessage();
                     userMessage.setMessageId(userMessageId);
@@ -415,7 +415,7 @@ public class ChatCustomService implements IChatCustomService {
 
 
     // 创建新对话逻辑
-    private void createChatSession(String email,String title, String session_id, String model_name) {
+    private void createChatSession(String email, String title, String session_id, String model_name) {
         Chat chat = new Chat();
         chat.setEmail(email);
         chat.setTitle(title);
