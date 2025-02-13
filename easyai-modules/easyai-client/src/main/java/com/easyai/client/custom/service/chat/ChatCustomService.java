@@ -185,32 +185,24 @@ public class ChatCustomService implements IChatCustomService {
                 .build();
 
         String finalTitle = title;
-        AtomicBoolean flag = new AtomicBoolean(false);
+
+        boolean flag = model.getModelName().toLowerCase().contains("deepseek");
         chatClient.prompt(chatStreamReqBody.getUserMessage())
                 .stream()
                 .chatResponse()
                 .doOnNext(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getContent();
-                    if (text!=null){
-                        if ("<think>".equals(text)) {
-                            flag.set(true);
-                            text = "> Thinking";
-                        }
-                        if (flag.get()) {
-                            text = text.replace("\n\n", "\n");
-                        }
-                        if ("</think>".equals(text)) {
-                            flag.set(true);
-                            text = "";
-                        }
-                        // 替换结束标签
-                        sb.append(text);
-                        sink.tryEmitNext(new ChatStreamResp<>(
-                                sessionId,
-                                text,
-                                MessageStreamResponsePhaseEnum.CHAT.getValue()
-                        ));
-                    }
+                    if (flag){
+                        text = text.replace("<think>","> Thinking");
+                        text = text.replace("\n\n", "\n");
+                        text = text.replace("</think>", "\n");                    }
+                    // 替换结束标签
+                    sb.append(text);
+                    sink.tryEmitNext(new ChatStreamResp<>(
+                            sessionId,
+                            text,
+                            MessageStreamResponsePhaseEnum.CHAT.getValue()
+                    ));
                     String finishReason =chatResponse.getResult().getMetadata().getFinishReason();
                     if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
                         Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens()*model.getPrice();
