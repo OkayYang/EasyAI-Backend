@@ -43,7 +43,7 @@ public class EasyAiMessage extends BaseEntity
 
     /** token */
     @Excel(name = "token")
-    private Long token;
+    private Integer token;
 
     /** 实际状态 */
     @Excel(name = "实际状态")
@@ -128,12 +128,12 @@ public class EasyAiMessage extends BaseEntity
     {
         return modelName;
     }
-    public void setToken(Long token)
+    public void setToken(Integer token)
     {
         this.token = token;
     }
 
-    public Long getToken()
+    public Integer getToken()
     {
         return token;
     }

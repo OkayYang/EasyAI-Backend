@@ -1,6 +1,7 @@
 package com.easyai.client.springai.factory.impl;
 
 import com.easyai.client.base.domain.ApiKey;
+import com.easyai.client.base.domain.EasyAiChatModel;
 import com.easyai.client.springai.factory.SpringAiChatModelFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -13,10 +14,12 @@ import static com.easyai.client.custom.constant.EasyAIConstants.PLATFORM_OPENAI;
 @Service
 public class OpenAiChatModelFactory implements SpringAiChatModelFactory {
     @Override
-    public ChatModel createChatModel(ApiKey apiKey, com.easyai.client.base.domain.ChatModel modelConfig) {
+    public ChatModel createChatModel(ApiKey apiKey, EasyAiChatModel modelConfig) {
         OpenAiApi openAiApi = new OpenAiApi(apiKey.getProxyUrl(),apiKey.getApiKey());
         OpenAiChatOptions openAiChatOptions = OpenAiChatOptions.builder()
                 .model(modelConfig.getModelName())
+                .temperature(modelConfig.getTemperature())
+                .maxTokens(modelConfig.getMaxTokens())
                 .build();
         return new OpenAiChatModel(openAiApi, openAiChatOptions);
     }

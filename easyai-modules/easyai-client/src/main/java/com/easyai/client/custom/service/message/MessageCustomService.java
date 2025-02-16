@@ -1,7 +1,6 @@
 package com.easyai.client.custom.service.message;
 
 import com.easyai.client.base.domain.Chat;
-import com.easyai.client.base.domain.ChatModel;
 import com.easyai.client.base.domain.EasyAiMessage;
 import com.easyai.client.custom.controller.message.vo.MessageListBody;
 import com.easyai.client.custom.controller.message.vo.MessageListRespBody;

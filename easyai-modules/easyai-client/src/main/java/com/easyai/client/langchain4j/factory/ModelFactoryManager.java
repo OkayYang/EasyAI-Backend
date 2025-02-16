@@ -1,7 +1,7 @@
 package com.easyai.client.langchain4j.factory;
 
 import com.easyai.client.base.domain.ApiKey;
-import com.easyai.client.base.domain.ChatModel;
+import com.easyai.client.base.domain.EasyAiChatModel;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ public class ModelFactoryManager {
             modelFactoryMap.putIfAbsent(modelFactory.getPlatformName(),modelFactory);
         });
     }
-    public StreamingChatLanguageModel createModel(ApiKey apiKey, ChatModel chatModel) {
+    public StreamingChatLanguageModel createModel(ApiKey apiKey, EasyAiChatModel chatModel) {
 
         ModelFactory modelFactory = modelFactoryMap.get(chatModel.getPlatform());
         if (modelFactory == null) {

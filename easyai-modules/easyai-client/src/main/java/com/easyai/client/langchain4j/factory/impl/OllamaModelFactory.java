@@ -1,7 +1,7 @@
 package com.easyai.client.langchain4j.factory.impl;
 
 import com.easyai.client.base.domain.ApiKey;
-import com.easyai.client.base.domain.ChatModel;
+import com.easyai.client.base.domain.EasyAiChatModel;
 import com.easyai.client.langchain4j.factory.ModelFactory;
 import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
@@ -16,7 +16,7 @@ import static com.easyai.client.custom.constant.EasyAIConstants.PLATFORM_OLLAMA;
 @Service
 public class OllamaModelFactory implements ModelFactory {
     @Override
-    public StreamingChatLanguageModel createModel(ApiKey apiKey, ChatModel modelConfig) {
+    public StreamingChatLanguageModel createModel(ApiKey apiKey, EasyAiChatModel modelConfig) {
         Map<String,String> head = new HashMap<>();
         head.put(AUTHORIZATION,apiKey.getApiKey());
         return OllamaStreamingChatModel.builder()

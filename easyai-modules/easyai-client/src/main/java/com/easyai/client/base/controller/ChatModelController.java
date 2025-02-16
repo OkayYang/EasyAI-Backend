@@ -2,6 +2,8 @@ package com.easyai.client.base.controller;
 
 import java.util.List;
 import java.io.IOException;
+
+import com.easyai.client.base.domain.EasyAiChatModel;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.easyai.common.log.annotation.Log;
 import com.easyai.common.log.enums.BusinessType;
 import com.easyai.common.security.annotation.RequiresPermissions;
-import com.easyai.client.base.domain.ChatModel;
 import com.easyai.client.base.service.IChatModelService;
 import com.easyai.common.core.web.controller.BaseController;
 import com.easyai.common.core.web.domain.AjaxResult;
@@ -40,10 +41,10 @@ public class ChatModelController extends BaseController
      */
     @RequiresPermissions("client:chatModel:list")
     @GetMapping("/list")
-    public TableDataInfo list(ChatModel chatModel)
+    public TableDataInfo list(EasyAiChatModel chatModel)
     {
         startPage();
-        List<ChatModel> list = chatModelService.selectChatModelList(chatModel);
+        List<EasyAiChatModel> list = chatModelService.selectChatModelList(chatModel);
         return getDataTable(list);
     }
 
@@ -53,10 +54,10 @@ public class ChatModelController extends BaseController
     @RequiresPermissions("client:chatModel:export")
     @Log(title = "AI 模型", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, ChatModel chatModel)
+    public void export(HttpServletResponse response, EasyAiChatModel chatModel)
     {
-        List<ChatModel> list = chatModelService.selectChatModelList(chatModel);
-        ExcelUtil<ChatModel> util = new ExcelUtil<ChatModel>(ChatModel.class);
+        List<EasyAiChatModel> list = chatModelService.selectChatModelList(chatModel);
+        ExcelUtil<EasyAiChatModel> util = new ExcelUtil<EasyAiChatModel>(EasyAiChatModel.class);
         util.exportExcel(response, list, "AI 模型数据");
     }
 
@@ -76,7 +77,7 @@ public class ChatModelController extends BaseController
     @RequiresPermissions("client:chatModel:add")
     @Log(title = "AI 模型", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody ChatModel chatModel)
+    public AjaxResult add(@RequestBody EasyAiChatModel chatModel)
     {
         return toAjax(chatModelService.insertChatModel(chatModel));
     }
@@ -87,7 +88,7 @@ public class ChatModelController extends BaseController
     @RequiresPermissions("client:chatModel:edit")
     @Log(title = "AI 模型", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody ChatModel chatModel)
+    public AjaxResult edit(@RequestBody EasyAiChatModel chatModel)
     {
         return toAjax(chatModelService.updateChatModel(chatModel));
     }

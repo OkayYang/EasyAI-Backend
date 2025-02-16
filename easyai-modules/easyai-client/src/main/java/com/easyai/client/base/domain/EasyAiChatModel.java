@@ -12,7 +12,7 @@ import com.easyai.common.core.web.domain.BaseEntity;
  * @author xiaoshuaige
  * @date 2024-12-26
  */
-public class ChatModel extends BaseEntity
+public class EasyAiChatModel extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
@@ -33,15 +33,15 @@ public class ChatModel extends BaseEntity
 
     /** 创意度 */
     @Excel(name = "创意度")
-    private BigDecimal temperature;
+    private Double temperature;
 
     /** 最大token数 */
     @Excel(name = "最大token数")
-    private Long maxTokens;
+    private Integer maxTokens;
 
     /** 最大上下文长度 */
     @Excel(name = "最大上下文长度")
-    private Long maxContext;
+    private Integer maxContext;
 
     /** 算力点数 */
     @Excel(name = "算力点数")
@@ -91,33 +91,31 @@ public class ChatModel extends BaseEntity
     {
         return version;
     }
-    public void setTemperature(BigDecimal temperature)
-    {
+
+    public Double getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(Double temperature) {
         this.temperature = temperature;
     }
 
-    public BigDecimal getTemperature()
-    {
-        return temperature;
+    public Integer getMaxTokens() {
+        return maxTokens;
     }
-    public void setMaxTokens(Long maxTokens)
-    {
+
+    public void setMaxTokens(Integer maxTokens) {
         this.maxTokens = maxTokens;
     }
 
-    public Long getMaxTokens()
-    {
-        return maxTokens;
+    public Integer getMaxContext() {
+        return maxContext;
     }
-    public void setMaxContext(Long maxContext)
-    {
+
+    public void setMaxContext(Integer maxContext) {
         this.maxContext = maxContext;
     }
 
-    public Long getMaxContext()
-    {
-        return maxContext;
-    }
     public void setPrice(Integer price)
     {
         this.price = price;
