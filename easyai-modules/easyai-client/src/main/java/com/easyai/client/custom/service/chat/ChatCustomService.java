@@ -20,6 +20,7 @@ import com.easyai.client.langchain4j.utils.ParseInnerLLMError;
 import com.easyai.client.springai.factory.SpringAiChatModelFactoryManager;
 import com.easyai.common.core.exception.ServiceException;
 import com.easyai.common.core.utils.DateUtils;
+import com.easyai.common.core.utils.StringUtils;
 import com.easyai.common.core.utils.uuid.UUID;
 import com.easyai.common.security.utils.SecurityUtils;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
@@ -39,6 +40,8 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
 
@@ -183,9 +186,8 @@ public class ChatCustomService implements IChatCustomService {
                 .build();
 
         String finalTitle = title;
-        ResponseMessage responseMessage = new ResponseMessage();
-        responseMessage.setType("text");
         boolean isDeepseek = model.getModelName().toLowerCase().contains("deepseek");
+        AtomicBoolean isThinking = new AtomicBoolean(true);
         StringBuilder textBuffer = new StringBuilder();
         StringBuilder thinkBuffer = new StringBuilder();
         String thinkStartTag = "<think>";
@@ -195,31 +197,37 @@ public class ChatCustomService implements IChatCustomService {
                 .chatResponse()
                 .doOnNext(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getText();
-                    if (isDeepseek) {
-                        if (thinkStartTag.equals(text)) {
-                            responseMessage.setType("thinking");
-                            text = "";
-                        }
-                        if (thinkEndTag.equals(text)){
-                            responseMessage.setType("text");
-                            text = "";
-                        }
-                        if ("thinking".equals(responseMessage.getType())){
-                            thinkBuffer.append(text);
-                        }else {
-                            textBuffer.append(text);
-                        }
+                    if (isDeepseek && isThinking.get()) {
+                        boolean isStartTag = thinkStartTag.equals(text);
+                        boolean isEndTag = thinkEndTag.equals(text);
+                        if (!isStartTag && !isEndTag) {
+                            if ("\n\n".equals(text) && !thinkBuffer.isEmpty()) {
+                                sink.tryEmitNext(new ChatStreamResp<>(
+                                        sessionId,
+                                        text,
+                                        MessageStreamResponsePhaseEnum.THINKING.getValue()
+                                ));
+                                thinkBuffer.append(text);
+                            }else if(!"\n\n".equals(text)){
+                                sink.tryEmitNext(new ChatStreamResp<>(
+                                        sessionId,
+                                        text,
+                                        MessageStreamResponsePhaseEnum.THINKING.getValue()
+                                ));
+                                thinkBuffer.append(text);
+                            }
 
-                    }else {
+                        } else if (isEndTag) {
+                            isThinking.set(false);
+                        }
+                    } else {
+                        sink.tryEmitNext(new ChatStreamResp<>(
+                                sessionId,
+                                text,
+                                MessageStreamResponsePhaseEnum.CHAT.getValue()
+                        ));
                         textBuffer.append(text);
                     }
-
-                    responseMessage.setText(text);
-                    sink.tryEmitNext(new ChatStreamResp<>(
-                            sessionId,
-                            responseMessage,
-                            MessageStreamResponsePhaseEnum.CHAT.getValue()
-                    ));
                     String finishReason = chatResponse.getResult().getMetadata().getFinishReason();
                     if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
                         Integer inputToken = chatResponse.getMetadata().getUsage().getPromptTokens() * model.getPrice();
@@ -245,7 +253,8 @@ public class ChatCustomService implements IChatCustomService {
                         aiMessage.setSessionId(sessionId);
                         aiMessage.setEmail(email);
                         aiMessage.setContent(textBuffer.toString());
-                        aiMessage.setThinkingContent(thinkBuffer.toString());
+                        String thinkText = thinkBuffer.toString();
+                        aiMessage.setThinkingContent(StringUtils.hasText(thinkText) ? thinkText : null);
                         aiMessage.setRole(EASYAI_AI);
                         aiMessage.setParentId(userMessageId);
                         aiMessage.setModelName(chatStreamReqBody.getModelName());

@@ -13,6 +13,7 @@ package com.easyai.client.custom.enums;
 public enum MessageStreamResponsePhaseEnum {
 
     START("start","开始阶段"),
+    THINKING("thinking", "思考阶段"),
     CHAT("chat", "对话阶段"),
     CONCLUDE("conclude", "总结阶段"),
     ERROR("error", "报错阶段");
