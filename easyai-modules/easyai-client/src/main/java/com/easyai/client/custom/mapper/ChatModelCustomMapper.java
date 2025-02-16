@@ -1,6 +1,6 @@
 package com.easyai.client.custom.mapper;
 
-import com.easyai.client.base.domain.ChatModel;
+import com.easyai.client.base.domain.EasyAiChatModel;
 import com.easyai.client.base.mapper.ChatModelMapper;
 
 import java.util.List;
@@ -14,6 +14,6 @@ import java.util.List;
 public interface ChatModelCustomMapper extends ChatModelMapper
 {
 
-    ChatModel getModelByName(String modelName);
-    List<ChatModel> getAllModels();
+    EasyAiChatModel getModelByName(String modelName);
+    List<EasyAiChatModel> getAllModels();
 }

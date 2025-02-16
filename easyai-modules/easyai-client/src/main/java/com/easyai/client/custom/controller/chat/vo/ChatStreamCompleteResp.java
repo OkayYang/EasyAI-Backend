@@ -11,14 +11,14 @@ import lombok.Data;
 
 public class ChatStreamCompleteResp {
     public String ai_message_id;
-    public Long inputToken;
-    public Long outputToken;
+    public Integer inputToken;
+    public Integer outputToken;
     public String finishReason;
 
     public ChatStreamCompleteResp() {
     }
 
-    public ChatStreamCompleteResp(String ai_message_id, Long inputToken, Long outputToken, String finishReason) {
+    public ChatStreamCompleteResp(String ai_message_id, Integer inputToken, Integer outputToken, String finishReason) {
         this.ai_message_id = ai_message_id;
         this.inputToken = inputToken;
         this.outputToken = outputToken;
@@ -33,19 +33,19 @@ public class ChatStreamCompleteResp {
         this.ai_message_id = ai_message_id;
     }
 
-    public Long getInputToken() {
+    public Integer getInputToken() {
         return inputToken;
     }
 
-    public void setInputToken(Long inputToken) {
+    public void setInputToken(Integer inputToken) {
         this.inputToken = inputToken;
     }
 
-    public Long getOutputToken() {
+    public Integer getOutputToken() {
         return outputToken;
     }
 
-    public void setOutputToken(Long outputToken) {
+    public void setOutputToken(Integer outputToken) {
         this.outputToken = outputToken;
     }
 

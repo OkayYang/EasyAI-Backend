@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.easyai.client.custom.mapper.ChatModelCustomMapper">
 
-    <resultMap type="ChatModel" id="ChatModelResult">
+    <resultMap type="EasyAiChatModel" id="ChatModelResult">
         <result property="id"    column="id"    />
         <result property="platform"    column="platform"    />
         <result property="modelName"    column="model_name"    />

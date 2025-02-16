@@ -29,6 +29,8 @@ public class EasyAiMessage extends BaseEntity
     /** 内容 */
     private String content;
 
+    private String thinkingContent;
+
     /** 角色 */
     @Excel(name = "角色")
     private String role;
@@ -43,7 +45,7 @@ public class EasyAiMessage extends BaseEntity
 
     /** token */
     @Excel(name = "token")
-    private Long token;
+    private Integer token;
 
     /** 实际状态 */
     @Excel(name = "实际状态")
@@ -56,6 +58,14 @@ public class EasyAiMessage extends BaseEntity
     /** 创建时间戳 */
     @Excel(name = "创建时间戳")
     private Long createAt;
+
+    public String getThinkingContent() {
+        return thinkingContent;
+    }
+
+    public void setThinkingContent(String thinkingContent) {
+        this.thinkingContent = thinkingContent;
+    }
 
     public Long getCreateAt() {
         return createAt;
@@ -128,12 +138,12 @@ public class EasyAiMessage extends BaseEntity
     {
         return modelName;
     }
-    public void setToken(Long token)
+    public void setToken(Integer token)
     {
         this.token = token;
     }
 
-    public Long getToken()
+    public Integer getToken()
     {
         return token;
     }

@@ -51,7 +51,7 @@ public class EasyAIConstants {
     /**
      * 记忆最大值
      */
-    public static final int MEMORY_SIZE = 10;
+    public static final int MEMORY_SIZE = 5;
 
 
 

@@ -1,6 +1,7 @@
 package com.easyai.client.springai.factory;
 
 import com.easyai.client.base.domain.ApiKey;
+import com.easyai.client.base.domain.EasyAiChatModel;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ public class SpringAiChatModelFactoryManager {
             modelFactoryMap.putIfAbsent(modelFactory.getPlatformName(),modelFactory);
         });
     }
-    public ChatModel createChatModel(ApiKey apiKey, com.easyai.client.base.domain.ChatModel chatModel) {
+    public ChatModel createChatModel(ApiKey apiKey, EasyAiChatModel chatModel) {
 
         SpringAiChatModelFactory modelFactory = modelFactoryMap.get(chatModel.getPlatform());
         if (modelFactory == null) {

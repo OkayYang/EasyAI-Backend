@@ -1,11 +1,12 @@
 package com.easyai.client.base.service.impl;
 
 import java.util.List;
+
+import com.easyai.client.base.domain.EasyAiChatModel;
 import com.easyai.common.core.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.easyai.client.base.mapper.ChatModelMapper;
-import com.easyai.client.base.domain.ChatModel;
 import com.easyai.client.base.service.IChatModelService;
 
 /**
@@ -27,7 +28,7 @@ public class ChatModelServiceImpl implements IChatModelService
      * @return AI 模型
      */
     @Override
-    public ChatModel selectChatModelById(Long id)
+    public EasyAiChatModel selectChatModelById(Long id)
     {
         return chatModelMapper.selectChatModelById(id);
     }
@@ -39,7 +40,7 @@ public class ChatModelServiceImpl implements IChatModelService
      * @return AI 模型
      */
     @Override
-    public List<ChatModel> selectChatModelList(ChatModel chatModel)
+    public List<EasyAiChatModel> selectChatModelList(EasyAiChatModel chatModel)
     {
         return chatModelMapper.selectChatModelList(chatModel);
     }
@@ -51,7 +52,7 @@ public class ChatModelServiceImpl implements IChatModelService
      * @return 结果
      */
     @Override
-    public int insertChatModel(ChatModel chatModel)
+    public int insertChatModel(EasyAiChatModel chatModel)
     {
         chatModel.setCreateTime(DateUtils.getNowDate());
         return chatModelMapper.insertChatModel(chatModel);
@@ -64,7 +65,7 @@ public class ChatModelServiceImpl implements IChatModelService
      * @return 结果
      */
     @Override
-    public int updateChatModel(ChatModel chatModel)
+    public int updateChatModel(EasyAiChatModel chatModel)
     {
         chatModel.setUpdateTime(DateUtils.getNowDate());
         return chatModelMapper.updateChatModel(chatModel);

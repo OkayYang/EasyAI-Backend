@@ -39,8 +39,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
 
@@ -129,7 +127,7 @@ public class ChatCustomService implements IChatCustomService {
     public Flux<ChatStreamResp<?>> springAiChat(ChatStreamReqBody chatStreamReqBody) {
         String email = SecurityUtils.getUsername();
         // 1. 验证模型合法性以及用户token余额
-        ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
+        EasyAiChatModel model = checkModelExist(chatStreamReqBody.getModelName());
         User user = userCustomMapper.selectUserByUserName(email);
         Long balance = user.getPower();
         if (balance <= 0 && model.getPrice() > 0) {
@@ -172,7 +170,6 @@ public class ChatCustomService implements IChatCustomService {
         org.springframework.ai.chat.model.ChatModel chatModel = springAiChatModelFactoryManager.createChatModel(apiKey, model);
 
         // 8.处理AI流式响应
-        StringBuilder sb = new StringBuilder();
         sink.tryEmitNext(new ChatStreamResp<>(sessionId,
                 new ChatStreamStartResp(parentId, userMessageId,
                         aiMessageId, chatStreamReqBody.getModelName(), title,
@@ -186,33 +183,50 @@ public class ChatCustomService implements IChatCustomService {
                 .build();
 
         String finalTitle = title;
-
-        boolean flag = model.getModelName().toLowerCase().contains("deepseek");
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setType("text");
+        boolean isDeepseek = model.getModelName().toLowerCase().contains("deepseek");
+        StringBuilder textBuffer = new StringBuilder();
+        StringBuilder thinkBuffer = new StringBuilder();
+        String thinkStartTag = "<think>";
+        String thinkEndTag = "</think>";
         chatClient.prompt(chatStreamReqBody.getUserMessage())
                 .stream()
                 .chatResponse()
                 .doOnNext(chatResponse -> {
-                    String text = chatResponse.getResult().getOutput().getContent();
-                    if (flag) {
-                        text = text.replace("<think>", "> Thinking");
-                        text = text.replace("\n\n", "\n");
-                        text = text.replace("</think>", "\n");
+                    String text = chatResponse.getResult().getOutput().getText();
+                    if (isDeepseek) {
+                        if (thinkStartTag.equals(text)) {
+                            responseMessage.setType("thinking");
+                            text = "";
+                        }
+                        if (thinkEndTag.equals(text)){
+                            responseMessage.setType("text");
+                            text = "";
+                        }
+                        if ("thinking".equals(responseMessage.getType())){
+                            thinkBuffer.append(text);
+                        }else {
+                            textBuffer.append(text);
+                        }
+
+                    }else {
+                        textBuffer.append(text);
                     }
-                    // 替换结束标签
-                    sb.append(text);
+
+                    responseMessage.setText(text);
                     sink.tryEmitNext(new ChatStreamResp<>(
                             sessionId,
-                            text,
+                            responseMessage,
                             MessageStreamResponsePhaseEnum.CHAT.getValue()
                     ));
                     String finishReason = chatResponse.getResult().getMetadata().getFinishReason();
                     if (CHAT_STATUS_STOP.equalsIgnoreCase(finishReason)) {
-                        Long inputToken = chatResponse.getMetadata().getUsage().getPromptTokens() * model.getPrice();
-                        Long outputToken = chatResponse.getMetadata().getUsage().getGenerationTokens() * model.getPrice();
+                        Integer inputToken = chatResponse.getMetadata().getUsage().getPromptTokens() * model.getPrice();
+                        Integer outputToken = chatResponse.getMetadata().getUsage().getCompletionTokens() * model.getPrice();
                         if (parentId == null) {
                             createChatSession(email, finalTitle, sessionId, chatStreamReqBody.getModelName());
                         }
-
 
                         EasyAiMessage userMessage = new EasyAiMessage();
                         userMessage.setMessageId(userMessageId);
@@ -230,7 +244,8 @@ public class ChatCustomService implements IChatCustomService {
                         aiMessage.setMessageId(aiMessageId);
                         aiMessage.setSessionId(sessionId);
                         aiMessage.setEmail(email);
-                        aiMessage.setContent(String.valueOf(sb));
+                        aiMessage.setContent(textBuffer.toString());
+                        aiMessage.setThinkingContent(thinkBuffer.toString());
                         aiMessage.setRole(EASYAI_AI);
                         aiMessage.setParentId(userMessageId);
                         aiMessage.setModelName(chatStreamReqBody.getModelName());
@@ -271,7 +286,7 @@ public class ChatCustomService implements IChatCustomService {
     public Flux<ChatStreamResp<?>> chat(ChatStreamReqBody chatStreamReqBody) {
         String email = SecurityUtils.getUsername();
         // 1. 验证模型合法性以及用户token余额
-        ChatModel model = checkModelExist(chatStreamReqBody.getModelName());
+        EasyAiChatModel model = checkModelExist(chatStreamReqBody.getModelName());
         User user = userCustomMapper.selectUserByUserName(email);
         Long balance = user.getPower();
         if (balance <= 0) {
@@ -368,8 +383,8 @@ public class ChatCustomService implements IChatCustomService {
                     // 只是更新数据库的一些token信息，其实扣除完token数即可返回用户了
                     String finishReason = response.finishReason().toString();
                     TokenUsage tokenUsage = response.tokenUsage();
-                    Long outputToken = (long) (tokenUsage.outputTokenCount() * model.getPrice());
-                    Long inputToken = (long) (tokenUsage.inputTokenCount() * model.getPrice());
+                    Integer outputToken = tokenUsage.outputTokenCount() * model.getPrice();
+                    Integer inputToken = tokenUsage.inputTokenCount() * model.getPrice();
 
                     EasyAiMessage userMessage = new EasyAiMessage();
                     userMessage.setMessageId(userMessageId);
@@ -379,7 +394,7 @@ public class ChatCustomService implements IChatCustomService {
                     userMessage.setRole(EASYAI_USER);
                     userMessage.setParentId(parentId);
                     userMessage.setModelName(chatStreamReqBody.getModelName());
-                    userMessage.setToken((long) inputToken);
+                    userMessage.setToken(inputToken);
                     userMessage.setCreateAt(DateUtils.getNowDate().getTime());
                     easyAiMessageMapper.insertEasyAiMessage(userMessage);
 
@@ -391,7 +406,7 @@ public class ChatCustomService implements IChatCustomService {
                     aiMessage.setRole(EASYAI_AI);
                     aiMessage.setParentId(userMessageId);
                     aiMessage.setModelName(chatStreamReqBody.getModelName());
-                    aiMessage.setToken((long) outputToken);
+                    aiMessage.setToken(outputToken);
                     aiMessage.setCreateAt(DateUtils.getNowDate().getTime());
                     easyAiMessageMapper.insertEasyAiMessage(aiMessage);
                     user.setPower(Math.max(0, balance - outputToken - inputToken));
@@ -427,8 +442,8 @@ public class ChatCustomService implements IChatCustomService {
     /**
      * 不存在该模型名则抛出异常
      **/
-    private ChatModel checkModelExist(String modelName) {
-        ChatModel selectedModel = chatModelCustomMapper.getModelByName(modelName);
+    private EasyAiChatModel checkModelExist(String modelName) {
+        EasyAiChatModel selectedModel = chatModelCustomMapper.getModelByName(modelName);
         if (selectedModel == null) {
             throw new RuntimeException("未查找到该模型!");
         }

@@ -1,7 +1,7 @@
 package com.easyai.client.base.service;
 
 import java.util.List;
-import com.easyai.client.base.domain.ChatModel;
+import com.easyai.client.base.domain.EasyAiChatModel;
 
 /**
  * AI 模型Service接口
@@ -17,7 +17,7 @@ public interface IChatModelService
      * @param id AI 模型主键
      * @return AI 模型
      */
-    public ChatModel selectChatModelById(Long id);
+    public EasyAiChatModel selectChatModelById(Long id);
 
     /**
      * 查询AI 模型列表
@@ -25,7 +25,7 @@ public interface IChatModelService
      * @param chatModel AI 模型
      * @return AI 模型集合
      */
-    public List<ChatModel> selectChatModelList(ChatModel chatModel);
+    public List<EasyAiChatModel> selectChatModelList(EasyAiChatModel chatModel);
 
     /**
      * 新增AI 模型
@@ -33,7 +33,7 @@ public interface IChatModelService
      * @param chatModel AI 模型
      * @return 结果
      */
-    public int insertChatModel(ChatModel chatModel);
+    public int insertChatModel(EasyAiChatModel chatModel);
 
     /**
      * 修改AI 模型
@@ -41,7 +41,7 @@ public interface IChatModelService
      * @param chatModel AI 模型
      * @return 结果
      */
-    public int updateChatModel(ChatModel chatModel);
+    public int updateChatModel(EasyAiChatModel chatModel);
 
     /**
      * 批量删除AI 模型

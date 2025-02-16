@@ -12,6 +12,7 @@ import java.util.Date;
 
 public class MessageListBody {
     private String content;
+    private String thinkingContent;
     private String messageId;
     private String modelName;
     private String parentId;
@@ -19,6 +20,14 @@ public class MessageListBody {
     private String sessionId;
     private Long token;
     private Long createAt;
+
+    public String getThinkingContent() {
+        return thinkingContent;
+    }
+
+    public void setThinkingContent(String thinkingContent) {
+        this.thinkingContent = thinkingContent;
+    }
 
     public String getContent() {
         return content;
