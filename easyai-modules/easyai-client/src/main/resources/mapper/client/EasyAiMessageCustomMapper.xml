@@ -9,6 +9,7 @@
         <result property="sessionId" column="session_id"/>
         <result property="email" column="email"/>
         <result property="content" column="content"/>
+        <result property="thinkingContent" column="thinking_content"/>
         <result property="role" column="role"/>
         <result property="parentId" column="parent_id"/>
         <result property="modelName" column="model_name"/>
@@ -30,6 +31,7 @@
                session_id,
                email,
                content,
+               thinking_content,
                role,
                parent_id,
                model_name,

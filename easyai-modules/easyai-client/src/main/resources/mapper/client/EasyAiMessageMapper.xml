@@ -9,6 +9,7 @@
         <result property="sessionId"    column="session_id"    />
         <result property="email"    column="email"    />
         <result property="content"    column="content"    />
+        <result property="thinkingContent"    column="thinking_content"    />
         <result property="role"    column="role"    />
         <result property="parentId"    column="parent_id"    />
         <result property="modelName"    column="model_name"    />
@@ -54,6 +55,7 @@
             <if test="sessionId != null">session_id,</if>
             <if test="email != null">email,</if>
             <if test="content != null">content,</if>
+            <if test="thinkingContent != null">thinking_content,</if>
             <if test="role != null">role,</if>
             <if test="parentId != null">parent_id,</if>
             <if test="modelName != null">model_name,</if>
@@ -70,6 +72,7 @@
             <if test="sessionId != null">#{sessionId},</if>
             <if test="email != null">#{email},</if>
             <if test="content != null">#{content},</if>
+            <if test="thinkingContent != null">#{thinkingContent},</if>
             <if test="role != null">#{role},</if>
             <if test="parentId != null">#{parentId},</if>
             <if test="modelName != null">#{modelName},</if>

@@ -29,6 +29,8 @@ public class EasyAiMessage extends BaseEntity
     /** 内容 */
     private String content;
 
+    private String thinkingContent;
+
     /** 角色 */
     @Excel(name = "角色")
     private String role;
@@ -56,6 +58,14 @@ public class EasyAiMessage extends BaseEntity
     /** 创建时间戳 */
     @Excel(name = "创建时间戳")
     private Long createAt;
+
+    public String getThinkingContent() {
+        return thinkingContent;
+    }
+
+    public void setThinkingContent(String thinkingContent) {
+        this.thinkingContent = thinkingContent;
+    }
 
     public Long getCreateAt() {
         return createAt;

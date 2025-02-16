@@ -39,8 +39,6 @@ import reactor.core.publisher.Sinks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static com.easyai.client.custom.constant.EasyAIConstants.*;
 
 
@@ -172,7 +170,6 @@ public class ChatCustomService implements IChatCustomService {
         org.springframework.ai.chat.model.ChatModel chatModel = springAiChatModelFactoryManager.createChatModel(apiKey, model);
 
         // 8.处理AI流式响应
-        StringBuilder sb = new StringBuilder();
         sink.tryEmitNext(new ChatStreamResp<>(sessionId,
                 new ChatStreamStartResp(parentId, userMessageId,
                         aiMessageId, chatStreamReqBody.getModelName(), title,
@@ -186,23 +183,41 @@ public class ChatCustomService implements IChatCustomService {
                 .build();
 
         String finalTitle = title;
-
-        boolean flag = model.getModelName().toLowerCase().contains("deepseek");
+        ResponseMessage responseMessage = new ResponseMessage();
+        responseMessage.setType("text");
+        boolean isDeepseek = model.getModelName().toLowerCase().contains("deepseek");
+        StringBuilder textBuffer = new StringBuilder();
+        StringBuilder thinkBuffer = new StringBuilder();
+        String thinkStartTag = "<think>";
+        String thinkEndTag = "</think>";
         chatClient.prompt(chatStreamReqBody.getUserMessage())
                 .stream()
                 .chatResponse()
                 .doOnNext(chatResponse -> {
                     String text = chatResponse.getResult().getOutput().getText();
-                    if (flag) {
-                        text = text.replace("<think>", "> Thinking");
-                        text = text.replace("\n\n", "\n");
-                        text = text.replace("</think>", "\n");
+                    if (isDeepseek) {
+                        if (thinkStartTag.equals(text)) {
+                            responseMessage.setType("thinking");
+                            text = "";
+                        }
+                        if (thinkEndTag.equals(text)){
+                            responseMessage.setType("text");
+                            text = "";
+                        }
+                        if ("thinking".equals(responseMessage.getType())){
+                            thinkBuffer.append(text);
+                        }else {
+                            textBuffer.append(text);
+                        }
+
+                    }else {
+                        textBuffer.append(text);
                     }
-                    // 替换结束标签
-                    sb.append(text);
+
+                    responseMessage.setText(text);
                     sink.tryEmitNext(new ChatStreamResp<>(
                             sessionId,
-                            text,
+                            responseMessage,
                             MessageStreamResponsePhaseEnum.CHAT.getValue()
                     ));
                     String finishReason = chatResponse.getResult().getMetadata().getFinishReason();
@@ -212,7 +227,6 @@ public class ChatCustomService implements IChatCustomService {
                         if (parentId == null) {
                             createChatSession(email, finalTitle, sessionId, chatStreamReqBody.getModelName());
                         }
-
 
                         EasyAiMessage userMessage = new EasyAiMessage();
                         userMessage.setMessageId(userMessageId);
@@ -230,7 +244,8 @@ public class ChatCustomService implements IChatCustomService {
                         aiMessage.setMessageId(aiMessageId);
                         aiMessage.setSessionId(sessionId);
                         aiMessage.setEmail(email);
-                        aiMessage.setContent(String.valueOf(sb));
+                        aiMessage.setContent(textBuffer.toString());
+                        aiMessage.setThinkingContent(thinkBuffer.toString());
                         aiMessage.setRole(EASYAI_AI);
                         aiMessage.setParentId(userMessageId);
                         aiMessage.setModelName(chatStreamReqBody.getModelName());
